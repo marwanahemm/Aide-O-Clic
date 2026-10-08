@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "proxiclic",
+  "main": "worker.js",
+  "compatibility_date": "2025-09-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "proxiclic" }],
+
+  // Images (logo, photos) : bucket R2 en juridiction UE, lu via un « binding » — aucune clé d'accès à gérer.
+  // À créer UNE FOIS avant le premier déploiement :
+  //   npx wrangler r2 bucket create proxiclic-images --jurisdiction eu
+  "r2_buckets": [
+    { "binding": "IMAGES_BUCKET", "bucket_name": "proxiclic-images", "jurisdiction": "eu" }
+  ],
+
+  // Purge RGPD quotidienne (remplace le Cron de Vercel) : 03h00 UTC chaque nuit → worker.js > scheduled()
+  "triggers": { "crons": ["0 3 * * *"] },
+
+  // Les variables/secrets saisis dans le tableau de bord Cloudflare ne doivent JAMAIS être écrasés par un déploiement.
+  "keep_vars": true,
+
+  "observability": { "enabled": true }
+}
