@@ -1,43 +1,57 @@
 'use client';
 import { useState } from 'react';
-import { calculerBudget, eur, PRIX_HEURE, PRIX_PACK_2H } from '../lib/pricing';
+import Link from 'next/link';
+import Icon from './Icon';
+import { calculerBudget, eur, nombre } from '../lib/pricing';
 
-export default function Simulator() {
+const RAPIDES = [1, 2, 3, 4, 6, 8];
+const borne = (h) => Math.min(10, Math.max(1, h));
+const fmtHeures = (h) => String(h).replace('.', ',');
+
+export default function Simulator({ prixHeure, prixPack2h, creditImpot, pct }) {
   const [heures, setHeures] = useState(2);
   const [mode, setMode] = useState('hourly');
-  const { brut, net } = calculerBudget(heures, mode);
+  const { brut, net } = calculerBudget(heures, mode, { prixHeure, prixPack2h, creditImpot });
 
   return (
-    <div className="card-item" style={{ padding: 24, marginBottom: 20 }}>
-      <div style={{ marginBottom: 20 }}>
-        <label className="form-label" htmlFor="pricing-mode">Sélectionnez votre formule :</label>
-        <select id="pricing-mode" className="form-select" style={{ fontWeight: 700, fontSize: 13 }} value={mode} onChange={(e) => setMode(e.target.value)}>
-          <option value="hourly">Tarif horaire standard ({PRIX_HEURE} € / heure)</option>
-          <option value="pack2h">Optimisation Forfait 2h ({PRIX_PACK_2H} € les 2 heures)</option>
-        </select>
+    <div className="sim">
+      <div className="panel">
+        <h2 className="panel-title"><span className="n">1</span> Choisissez votre formule</h2>
+        <div className="choice-grid" role="radiogroup" aria-label="Formule">
+          <button type="button" role="radio" aria-checked={mode === 'hourly'} className="choice" onClick={() => setMode('hourly')}>
+            <strong>Tarif horaire</strong>
+            <span>{nombre(prixHeure)} € / heure</span>
+          </button>
+          <button type="button" role="radio" aria-checked={mode === 'pack2h'} className="choice" onClick={() => setMode('pack2h')}>
+            <strong>Pack 2 heures</strong>
+            <span>{nombre(prixPack2h)} € les 2 heures</span>
+          </button>
+        </div>
+
+        <h2 className="panel-title" style={{ marginTop: 30 }}><span className="n">2</span> Combien d&apos;heures ?</h2>
+        <div className="stepper-hours">
+          <button type="button" className="round-btn" aria-label="Retirer une demi-heure" disabled={heures <= 1} onClick={() => setHeures((h) => borne(h - 0.5))}><Icon name="minus" size={26} /></button>
+          <div className="hours-value">{fmtHeures(heures)}<small>{heures > 1 ? 'heures' : 'heure'}</small></div>
+          <button type="button" className="round-btn" aria-label="Ajouter une demi-heure" disabled={heures >= 10} onClick={() => setHeures((h) => borne(h + 0.5))}><Icon name="plus" size={26} /></button>
+        </div>
+        <input id="hours-slider" type="range" min="1" max="10" step="0.5" value={heures} onChange={(e) => setHeures(parseFloat(e.target.value))} aria-label="Nombre d'heures d'intervention" />
+        <div className="range-scale" aria-hidden="true"><span>1 h · ponctuel</span><span>5 h · suivi</span><span>10 h · accompagnement</span></div>
+        <div className="quick" role="group" aria-label="Choix rapides">
+          {RAPIDES.map((h) => (
+            <button key={h} type="button" className={'slot-btn' + (heures === h ? ' selected' : '')} aria-pressed={heures === h} onClick={() => setHeures(h)}>{h} h</button>
+          ))}
+        </div>
       </div>
 
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <label htmlFor="hours-slider" className="form-label" style={{ fontSize: 13, margin: 0 }}>Volume horaire d&apos;intervention :</label>
-          <span style={{ color: 'var(--cyan-accent)', fontSize: 20, fontWeight: 800 }}>{heures.toFixed(1).replace('.', ',')} h</span>
+      <aside className="sim-side" aria-live="polite" aria-label="Résultat de la simulation">
+        <div className="result">
+          <div className="result-label">Votre coût réel</div>
+          <div className="result-net">{eur(net)}</div>
+          <div className="result-brut">au lieu de {eur(brut)} avant crédit d&apos;impôt de {pct} %</div>
+          <div className="save-badge"><Icon name="check" size={18} /> Vous économisez {eur(brut - net)}</div>
+          <Link href="/rendez-vous" className="btn btn-cta btn-block btn-lg">Réserver cette intervention <Icon name="arrow" size={20} /></Link>
         </div>
-        <input id="hours-slider" type="range" min="1" max="10" step="0.5" value={heures} onChange={(e) => setHeures(parseFloat(e.target.value))} style={{ width: '100%', height: 8, accentColor: 'var(--cyan-accent)', cursor: 'pointer' }} />
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
-          <span>1h (Ponctuel)</span><span>5h (Suivi)</span><span>10h (Accompagnement)</span>
-        </div>
-      </div>
-
-      <div className="grid-2" style={{ marginBottom: 0 }} aria-live="polite">
-        <div style={{ background: '#ffffff', padding: 18, borderRadius: 8, border: '1px solid var(--border-color)', textAlign: 'center' }}>
-          <div style={{ fontSize: 11, textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, marginBottom: 4 }}>Montant Total Brut</div>
-          <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--navy-bg)' }}>{eur(brut)}</div>
-        </div>
-        <div style={{ background: 'var(--blue-callout-bg)', padding: 18, borderRadius: 8, border: '2px solid var(--cyan-accent)', textAlign: 'center' }}>
-          <div style={{ fontSize: 11, textTransform: 'uppercase', color: 'var(--blue-callout-text)', fontWeight: 700, marginBottom: 4 }}>Coût Réel (Après Crédit d&apos;Impôt 50 %)</div>
-          <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--green-badge-text)' }}>{eur(net)}</div>
-        </div>
-      </div>
+      </aside>
     </div>
   );
 }

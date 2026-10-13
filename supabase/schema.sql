@@ -5,12 +5,14 @@ create table if not exists public.rendez_vous (
   id          uuid primary key default gen_random_uuid(),
   created_at  timestamptz not null default now(),
   date_rdv    date not null,
-  creneau     text not null check (creneau in ('09h00 - 11h00','11h00 - 12h30','14h00 - 16h00','16h00 - 18h00')),
+  creneau     text not null,
   nom         text not null check (char_length(nom) between 2 and 100),
   telephone   text not null check (char_length(telephone) between 6 and 20),
+  email       text check (char_length(email) <= 150),
   prestation  text not null,
   commune     text not null,
   details     text check (char_length(details) <= 1000),
+  conditions_acceptees_le timestamptz,
   statut      text not null default 'en_attente' check (statut in ('en_attente','confirme','annule'))
 );
 
@@ -33,3 +35,18 @@ create table if not exists public.messages_contact (
 -- Seules les routes API du site (clé service_role côté serveur) accèdent aux tables.
 alter table public.rendez_vous     enable row level security;
 alter table public.messages_contact enable row level security;
+
+-- ========== Back-office (/admin) ==========
+-- Voir aussi supabase/back-office.sql (même contenu, à exécuter si la base existe déjà).
+create table if not exists public.parametres (
+  cle    text primary key,
+  valeur jsonb not null,
+  maj    timestamptz not null default now()
+);
+create table if not exists public.admin_tentatives (
+  ip    text primary key,
+  nb    int not null default 0,
+  debut timestamptz not null default now()
+);
+alter table public.parametres       enable row level security;
+alter table public.admin_tentatives enable row level security;

@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import Icon from './Icon';
 import RgpdNote from './RgpdNote';
 
 export default function ContactForm() {
@@ -35,22 +36,22 @@ export default function ContactForm() {
     <form onSubmit={envoyer}>
       <input className="hp" type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" />
       <div className="form-group">
-        <label className="form-label" htmlFor="c-nom">Votre Nom</label>
-        <input id="c-nom" type="text" name="nom" className="form-input" required minLength={2} maxLength={100} />
+        <label className="form-label" htmlFor="c-nom">Votre nom</label>
+        <input id="c-nom" type="text" name="nom" className="form-input" placeholder="Ex : Jean Dupont" autoComplete="name" required minLength={2} maxLength={100} />
       </div>
       <div className="form-group">
-        <label className="form-label" htmlFor="c-contact">Téléphone ou E-mail</label>
-        <input id="c-contact" type="text" name="contact" className="form-input" required minLength={5} maxLength={150} />
+        <label className="form-label" htmlFor="c-contact">Téléphone ou e-mail</label>
+        <input id="c-contact" type="text" name="contact" className="form-input" placeholder="Pour que je puisse vous répondre" required minLength={5} maxLength={150} />
       </div>
       <div className="form-group">
-        <label className="form-label" htmlFor="c-message">Votre Message</label>
-        <textarea id="c-message" name="message" rows={4} className="form-textarea" placeholder="Expliquez brièvement votre demande..." required minLength={5} maxLength={2000} />
+        <label className="form-label" htmlFor="c-message">Votre message</label>
+        <textarea id="c-message" name="message" rows={5} className="form-textarea" placeholder="Expliquez brièvement votre demande…" required minLength={5} maxLength={2000} />
       </div>
 
       <RgpdNote />
 
-      {etat.type === 'ok' && <div className="callout-box" role="status"><p>✅ {etat.texte}</p></div>}
-      {etat.type === 'erreur' && <div className="senior-help-bar" role="alert"><div className="senior-help-bar-text">⚠️ {etat.texte}</div></div>}
+      {etat.type === 'ok' && <div className="alert alert-ok" role="status"><Icon name="check" size={22} /> <span>{etat.texte}</span></div>}
+      {etat.type === 'erreur' && <div className="alert alert-erreur" role="alert"><span aria-hidden="true">⚠️</span> <span>{etat.texte}</span></div>}
 
       <button type="submit" className="btn-primary" disabled={envoi}>{envoi ? 'Envoi en cours…' : 'Envoyer le message'}</button>
     </form>

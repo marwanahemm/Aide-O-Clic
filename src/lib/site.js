@@ -1,3 +1,6 @@
+// Nom commercial de la micro-entreprise (affiché dans l'en-tête, le pied de page, les e-mails et les mentions légales)
+export const NOM_SITE = "Aide O'Clic";
+
 // Coordonnées affichées partout sur le site (accueil, contact, mentions légales)
 export const TELEPHONE = '07 81 05 14 72';
 export const TELEPHONE_HREF = 'tel:+33781051472';
@@ -17,6 +20,8 @@ export const EDITEUR = {
   sap: '[N° de déclaration Services à la Personne]',
   adresse: '[Adresse professionnelle], 47000 Agen',
   directeurPublication: '[Prénom NOM]',
+  tva: 'TVA non applicable, article 293 B du CGI',
+  mediateur: '[Nom, adresse postale et site Internet du médiateur de la consommation]',
 };
 export const DATE_MAJ_LEGAL = '1er octobre 2026';
 

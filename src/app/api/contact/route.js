@@ -27,7 +27,10 @@ export async function POST(request) {
     if (error) throw error;
     await notifier({
       sujet: `Nouveau message : ${nom}`,
-      lignes: ['Nouveau message via le formulaire de contact', '', `Nom : ${nom}`, `Contact : ${contact}`, '', message],
+      lignes: [
+        'Nouveau message via le formulaire de contact', '', `Nom : ${nom}`, `Contact : ${contact}`, '', message, '',
+        `Voir dans le back-office : ${new URL('/admin', request.url).href}`,
+      ],
       replyTo: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact) ? contact : undefined, // « Répondre » fonctionne si c'est un e-mail
     });
     return NextResponse.json({ ok: true }, { status: 201 });

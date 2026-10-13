@@ -1,19 +1,18 @@
-import Nav from './Nav';
+import { NOM_SITE } from '../lib/site';
 
-// Bandeau d'en-tête + navigation, communs à toutes les pages
-export default function PageHead({ titre, sousTitre, pastilles = [] }) {
+// Bandeau d'introduction de chaque page (le menu est dans l'en-tête du site)
+export default function PageHead({ titre, sousTitre, pastilles = [], eyebrow }) {
   return (
-    <>
-      <header className="banner-card">
-        <div className="badge-sap-cyan">SERVICES À LA PERSONNE (SAP)</div>
-        <h1 className="main-title">{titre}</h1>
-        <p className="main-subtitle">{sousTitre}</p>
-        <div className="atouts-pills">
-          {pastilles.map((p) => <span key={p} className="pill-item">{p}</span>)}
-        </div>
-      </header>
-      <Nav />
-    </>
+    <header className="page-hero">
+      <p className="page-hero-eyebrow">{eyebrow || `${NOM_SITE} · Services à la personne`}</p>
+      <h1 className="page-hero-title">{titre}</h1>
+      {sousTitre && <p className="page-hero-sub">{sousTitre}</p>}
+      {pastilles.length > 0 && (
+        <ul className="pill-list">
+          {pastilles.map((p) => <li key={p} className="pill">{p}</li>)}
+        </ul>
+      )}
+    </header>
   );
 }
 
@@ -21,7 +20,6 @@ export function SectionTitle({ children }) {
   return (
     <div className="section-header">
       <h2>{children}</h2>
-      <div className="title-line" />
     </div>
   );
 }

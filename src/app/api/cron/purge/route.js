@@ -21,6 +21,9 @@ export async function GET(request) {
     const msg = await db.from('messages_contact').delete({ count: 'exact' })
       .lt('created_at', ilYaMois(RETENTION_CONTACT_MOIS).toISOString());
     if (msg.error) throw msg.error;
+    // Tentatives de connexion admin (adresses IP hachées) : conservées 24 h seulement
+    const essais = await db.from('admin_tentatives').delete().lt('debut', ilYaMois(0).toISOString().replace(/T.*/, 'T00:00:00Z'));
+    if (essais.error) console.error('purge admin_tentatives', essais.error.message);
     return NextResponse.json({ ok: true, rendezVousSupprimes: rdv.count, messagesSupprimes: msg.count });
   } catch (e) {
     console.error('cron purge', e.message);

@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Icon from './Icon';
 
 export default function ModeSwitch() {
   const [senior, setSenior] = useState(false);
@@ -17,11 +18,10 @@ export default function ModeSwitch() {
   }
 
   return (
-    <div className="mode-bar">
-      <button type="button" role="switch" aria-checked={senior} className="mode-switch" onClick={toggle}>
-        <span className="track" aria-hidden="true" />
-        <span>👓 Mode senior<small>Textes agrandis &amp; contrastes renforcés</small></span>
-      </button>
-    </div>
+    <button type="button" role="switch" aria-checked={senior} className="mode-switch" onClick={toggle}>
+      <Icon name="eye" size={20} />
+      <span className="mode-label">Mode senior<small>Textes plus grands, contrastes renforcés</small></span>
+      <span className="track" aria-hidden="true" />
+    </button>
   );
 }

@@ -1,20 +1,24 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { SectionTitle } from './PageHead';
+import { useEffect, useRef, useState } from 'react';
+import Icon from './Icon';
 import RgpdNote from './RgpdNote';
-import { CRENEAUX, COMMUNES, PRESTATIONS } from '../lib/pricing';
 
 const JOURS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const dateLongue = (isoDate) => new Date(`${isoDate}T12:00:00`).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
 
-export default function BookingForm() {
+export default function BookingForm({ creneaux, communes, prestations }) {
   const [mois, setMois] = useState(null); // { y, m } — défini après affichage pour éviter un décalage serveur/navigateur
   const [demain, setDemain] = useState(null);
   const [jour, setJour] = useState('');
   const [creneau, setCreneau] = useState('');
   const [pris, setPris] = useState([]);
+  const [prestation, setPrestation] = useState(prestations[0]?.value || '');
+  const [commune, setCommune] = useState(communes[0] || '');
   const [etat, setEtat] = useState({ type: '', texte: '' });
   const [envoi, setEnvoi] = useState(false);
+  const [fait, setFait] = useState(null); // récapitulatif après envoi réussi
+  const alerteRef = useRef(null);
 
   useEffect(() => {
     const t = new Date();
@@ -22,6 +26,10 @@ export default function BookingForm() {
     setDemain(d);
     setMois({ y: d.getFullYear(), m: d.getMonth() }); // mois de « demain » : évite un calendrier tout grisé le dernier jour du mois
   }, []);
+
+  useEffect(() => {
+    if (etat.type && alerteRef.current) alerteRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [etat]);
 
   // Créneaux déjà réservés pour le jour choisi (lus dans Supabase via l'API)
   function chargerCreneauxPris(date) {
@@ -52,7 +60,7 @@ export default function BookingForm() {
   async function envoyer(e) {
     e.preventDefault();
     if (!jour || !creneau) {
-      setEtat({ type: 'erreur', texte: 'Merci de choisir une date et un créneau horaire.' });
+      setEtat({ type: 'erreur', texte: 'Merci de choisir une date puis un créneau horaire dans le calendrier ci-dessus.' });
       return;
     }
     const form = e.currentTarget;
@@ -67,10 +75,11 @@ export default function BookingForm() {
       });
       const data = await res.json().catch(() => ({}));
       if (res.status === 201) {
-        setEtat({ type: 'ok', texte: data.demo ? "Mode démonstration : le formulaire fonctionne, mais votre demande n'a pas été enregistrée." : 'Votre demande est bien enregistrée. Je vous rappelle rapidement pour confirmer le rendez-vous.' });
+        setFait({ demo: Boolean(data.demo), jour, creneau, commune, prestation, email: f.email || '' });
         form.reset();
         setCreneau('');
         chargerCreneauxPris(jour);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else if (res.status === 409) {
         setEtat({ type: 'erreur', texte: "Ce créneau vient d'être réservé par quelqu'un d'autre. Merci d'en choisir un autre." });
         chargerCreneauxPris(jour);
@@ -84,107 +93,176 @@ export default function BookingForm() {
     }
   }
 
+  // ----- Confirmation d'envoi -----
+  if (fait) {
+    return (
+      <div className="panel success-panel" role="status">
+        <div className="big-check"><Icon name="check" size={44} /></div>
+        <h2>{fait.demo ? 'Démonstration réussie' : 'Demande bien reçue !'}</h2>
+        <p className="lead" style={{ maxWidth: '34rem', margin: '0 auto 22px' }}>
+          {fait.demo
+            ? "Le formulaire fonctionne, mais en mode démonstration votre demande n'a pas été enregistrée."
+            : `Je vous rappelle rapidement pour confirmer le rendez-vous${fait.email ? ', et vous recevrez aussi un e-mail de confirmation' : ''}.`}
+        </p>
+        <div className="recap" style={{ maxWidth: 440, margin: '0 auto 24px', textAlign: 'left' }}>
+          <dl>
+            <div><dt>Date</dt><dd className="cap">{dateLongue(fait.jour)}</dd></div>
+            <div><dt>Créneau</dt><dd>{fait.creneau}</dd></div>
+            <div><dt>Lieu</dt><dd>{fait.commune}</dd></div>
+            <div><dt>Prestation</dt><dd>{fait.prestation}</dd></div>
+          </dl>
+        </div>
+        <button type="button" className="btn btn-ghost" onClick={() => setFait(null)}>Faire une autre demande</button>
+      </div>
+    );
+  }
+
+  const etape = !jour ? 1 : !creneau ? 2 : 3;
+  const etapes = [['Date', 1], ['Créneau', 2], ['Coordonnées', 3]];
+
   return (
-    <>
-      <SectionTitle>1. CHOISISSEZ VOTRE DATE ET VOTRE CRÉNEAU</SectionTitle>
+    <div>
+      <ol className="stepper" aria-label="Progression">
+        {etapes.map(([t, n]) => (
+          <li key={n} className={n < etape ? 'fait' : n === etape ? 'actif' : ''} aria-current={n === etape ? 'step' : undefined}>
+            <span className="n">{n < etape ? <Icon name="check" size={16} /> : n}</span><span className="t">{t}</span>
+          </li>
+        ))}
+      </ol>
 
-      <div className="calendar-container">
-        <div className="calendar-header">
-          <button type="button" className="slot-btn" onClick={() => changerMois(-1)} disabled={!peutReculer} aria-label="Mois précédent">‹</button>
-          <div className="calendar-title" aria-live="polite">{titreMois}</div>
-          <button type="button" className="slot-btn" onClick={() => changerMois(1)} aria-label="Mois suivant">›</button>
-        </div>
-
-        <div className="calendar-grid">
-          {JOURS.map((j) => <div key={j} className="cal-day-head">{j}</div>)}
-          {cases.map((d) => {
-            const valeur = iso(d);
-            const dansLeMois = d.getMonth() === mois.m;
-            const ouvre = dansLeMois && d >= demain && d.getDay() !== 0 && d.getDay() !== 6;
-            return (
-              <div
-                key={valeur}
-                className={'cal-day' + (ouvre ? '' : ' disabled') + (jour === valeur ? ' selected' : '')}
-                role={ouvre ? 'button' : undefined}
-                tabIndex={ouvre ? 0 : undefined}
-                aria-pressed={ouvre ? jour === valeur : undefined}
-                onClick={ouvre ? () => { setJour(valeur); setCreneau(''); } : undefined}
-                onKeyDown={ouvre ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setJour(valeur); setCreneau(''); } } : undefined}
-              >
-                {d.getDate()}
+      <div className="booking">
+        <div>
+          <section className="panel" aria-labelledby="t-date">
+            <h2 className="panel-title" id="t-date"><span className="n">1</span> Choisissez un jour</h2>
+            <div className="calendar-container">
+              <div className="calendar-header">
+                <button type="button" className="slot-btn" onClick={() => changerMois(-1)} disabled={!peutReculer} aria-label="Mois précédent">‹</button>
+                <div className="calendar-title" aria-live="polite">{titreMois}</div>
+                <button type="button" className="slot-btn" onClick={() => changerMois(1)} aria-label="Mois suivant">›</button>
               </div>
-            );
-          })}
-        </div>
+              <div className="calendar-grid">
+                {JOURS.map((j) => <div key={j} className="cal-day-head">{j}</div>)}
+                {cases.map((d) => {
+                  const valeur = iso(d);
+                  if (d.getMonth() !== mois.m) return <span key={valeur} className="cal-empty" />;
+                  const ouvre = d >= demain && d.getDay() !== 0 && d.getDay() !== 6;
+                  return (
+                    <button
+                      key={valeur}
+                      type="button"
+                      className={'cal-day' + (ouvre ? '' : ' disabled') + (jour === valeur ? ' selected' : '')}
+                      disabled={!ouvre}
+                      aria-pressed={ouvre ? jour === valeur : undefined}
+                      aria-label={dateLongue(valeur)}
+                      onClick={() => { setJour(valeur); setCreneau(''); }}
+                    >
+                      {d.getDate()}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="field-help" style={{ marginTop: 12 }}>Du lundi au vendredi. Les jours grisés ne sont pas disponibles.</p>
+            </div>
+          </section>
 
-        <div style={{ marginTop: 16 }}>
-          <span className="form-label">Créneau horaire souhaité :</span>
-          <div className="time-slots">
-            {CRENEAUX.map((c) => (
-              <button
-                key={c}
-                type="button"
-                className={'slot-btn' + (creneau === c ? ' selected' : '')}
-                disabled={!jour || pris.includes(c)}
-                aria-pressed={creneau === c}
-                onClick={() => setCreneau(c)}
-              >
-                {c}
+          <section className="panel" aria-labelledby="t-creneau">
+            <h2 className="panel-title" id="t-creneau"><span className="n">2</span> Choisissez un créneau</h2>
+            <div className="time-slots">
+              {creneaux.map((c) => (
+                <button key={c} type="button" className={'slot-btn' + (creneau === c ? ' selected' : '')} disabled={!jour || pris.includes(c)} aria-pressed={creneau === c} onClick={() => setCreneau(c)}>
+                  {c}
+                </button>
+              ))}
+            </div>
+            {!jour && <p className="field-help" style={{ marginTop: 10 }}>Choisissez d&apos;abord un jour dans le calendrier.</p>}
+            {jour && pris.length > 0 && <p className="field-help" style={{ marginTop: 10 }}>Les créneaux barrés sont déjà réservés.</p>}
+          </section>
+
+          <section className="panel" aria-labelledby="t-coord">
+            <h2 className="panel-title" id="t-coord"><span className="n">3</span> Vos coordonnées</h2>
+            <form onSubmit={envoyer}>
+              <input className="hp" type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" />
+
+              <div className="grid-2" style={{ marginBottom: 0 }}>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="nom">Nom et prénom</label>
+                  <input id="nom" type="text" name="nom" className="form-input" placeholder="Ex : Jean Dupont" autoComplete="name" required minLength={2} maxLength={100} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="telephone">Téléphone</label>
+                  <input id="telephone" type="tel" name="telephone" className="form-input" placeholder="Ex : 06 12 34 56 78" autoComplete="tel" required />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="email">Adresse e-mail <span style={{ fontWeight: 600, color: 'var(--text-muted)' }}>(facultatif)</span></label>
+                <input id="email" type="email" name="email" className="form-input" placeholder="Ex : jean.dupont@exemple.fr" maxLength={150} autoComplete="email" />
+                <p className="field-help">Pour recevoir la confirmation de votre rendez-vous par e-mail.</p>
+              </div>
+
+              <div className="grid-2" style={{ marginBottom: 0 }}>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="prestation">Formule souhaitée</label>
+                  <select id="prestation" name="prestation" className="form-select" value={prestation} onChange={(e) => setPrestation(e.target.value)}>
+                    {prestations.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="commune">Commune</label>
+                  <select id="commune" name="commune" className="form-select" value={commune} onChange={(e) => setCommune(e.target.value)}>
+                    {communes.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="details">Votre besoin ou votre adresse précise <span style={{ fontWeight: 600, color: 'var(--text-muted)' }}>(facultatif)</span></label>
+                <textarea id="details" name="details" rows={3} maxLength={1000} className="form-textarea" placeholder="Ex : Résidence les Lilas à Boé. Besoin d'aide pour une déclaration en ligne et l'installation d'une imprimante Wi-Fi." />
+              </div>
+
+              <div className="form-group">
+                <label className="check-row">
+                  <input type="checkbox" name="accepteConditions" required />
+                  <span>
+                    J’ai lu les <a href="/annulation-remboursement" target="_blank" rel="noopener">conditions d’annulation, de rétractation et de remboursement</a>.
+                    Je demande que l’intervention ait lieu à la date choisie, même si elle intervient avant la fin du délai de rétractation de 14 jours, et je reconnais
+                    qu’une fois l’intervention entièrement réalisée, je ne pourrai plus me rétracter.
+                  </span>
+                </label>
+              </div>
+
+              <RgpdNote />
+
+              <div ref={alerteRef}>
+                {etat.type === 'erreur' && <div className="alert alert-erreur" role="alert"><span aria-hidden="true">⚠️</span> <span>{etat.texte}</span></div>}
+              </div>
+
+              <button type="submit" className="btn-primary btn-lg" disabled={envoi}>
+                {envoi ? 'Envoi en cours…' : 'Envoyer ma demande de rendez-vous'}
               </button>
-            ))}
-          </div>
-          {!jour && <p style={{ marginTop: 8, fontSize: 12, color: 'var(--text-muted)' }}>Choisissez d&apos;abord un jour ouvré.</p>}
-          {jour && pris.length > 0 && <p style={{ marginTop: 8, fontSize: 12, color: 'var(--text-muted)' }}>Les créneaux barrés sont déjà réservés.</p>}
+            </form>
+          </section>
         </div>
+
+        <aside className="booking-side" aria-label="Récapitulatif">
+          <div className="recap">
+            <h3>Votre rendez-vous</h3>
+            <dl>
+              <div><dt>Date</dt><dd className={'cap' + (jour ? '' : ' vide')}>{jour ? dateLongue(jour) : 'À choisir dans le calendrier'}</dd></div>
+              <div><dt>Créneau</dt><dd className={creneau ? '' : 'vide'}>{creneau || 'À choisir'}</dd></div>
+              <div><dt>Lieu</dt><dd>{commune}</dd></div>
+              <div><dt>Formule</dt><dd>{prestation}</dd></div>
+            </dl>
+          </div>
+          <div className="panel" style={{ marginBottom: 0 }}>
+            <ul className="reassure">
+              <li><Icon name="check" size={20} /> <span>Demande sans engagement : je vous rappelle pour confirmer.</span></li>
+              <li><Icon name="check" size={20} /> <span>Déplacement inclus dans les communes desservies.</span></li>
+              <li><Icon name="check" size={20} /> <span>Annulation possible, voir les <a href="/annulation-remboursement">conditions</a>.</span></li>
+            </ul>
+          </div>
+        </aside>
       </div>
-
-      <SectionTitle>2. VOS COORDONNÉES POUR CONFIRMER LE RENDEZ-VOUS</SectionTitle>
-
-      <div className="card-item" style={{ padding: 20 }}>
-        <form onSubmit={envoyer}>
-          <input className="hp" type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" />
-
-          <div className="grid-2">
-            <div className="form-group">
-              <label className="form-label" htmlFor="nom">Nom &amp; Prénom</label>
-              <input id="nom" type="text" name="nom" className="form-input" placeholder="Ex : Jean Dupont" required minLength={2} maxLength={100} />
-            </div>
-            <div className="form-group">
-              <label className="form-label" htmlFor="telephone">Téléphone de contact</label>
-              <input id="telephone" type="tel" name="telephone" className="form-input" placeholder="Ex : 06 12 34 56 78" required />
-            </div>
-          </div>
-
-          <div className="grid-2">
-            <div className="form-group">
-              <label className="form-label" htmlFor="prestation">Formule / Prestation souhaitée</label>
-              <select id="prestation" name="prestation" className="form-select">
-                {PRESTATIONS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
-              </select>
-            </div>
-            <div className="form-group">
-              <label className="form-label" htmlFor="commune">Commune (Bassin d&apos;Agen)</label>
-              <select id="commune" name="commune" className="form-select">
-                {COMMUNES.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label" htmlFor="details">Précisez le besoin ou l&apos;adresse précise</label>
-            <textarea id="details" name="details" rows={3} maxLength={1000} className="form-textarea" placeholder="Ex : Résidence les Lilas à Boé. Besoin d'aide pour une déclaration en ligne et l'installation d'une imprimante WiFi." />
-          </div>
-
-          <RgpdNote />
-
-          {etat.type === 'ok' && <div className="callout-box" role="status"><p>✅ {etat.texte}</p></div>}
-          {etat.type === 'erreur' && <div className="senior-help-bar" role="alert"><div className="senior-help-bar-text">⚠️ {etat.texte}</div></div>}
-
-          <button type="submit" className="btn-primary" disabled={envoi}>
-            {envoi ? 'Envoi en cours…' : 'Valider et demander la confirmation du RDV'}
-          </button>
-        </form>
-      </div>
-    </>
+    </div>
   );
 }

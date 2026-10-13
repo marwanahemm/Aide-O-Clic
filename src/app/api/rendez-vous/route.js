@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSupabase } from '../../../lib/supabase';
-import { CRENEAUX, COMMUNES, PRESTATIONS } from '../../../lib/pricing';
+import { construirePrestations } from '../../../lib/pricing';
+import { getConfig } from '../../../lib/config';
 import { notifier } from '../../../lib/notify';
 import { MODE_DEMO } from '../../../lib/site';
 
@@ -47,24 +48,29 @@ export async function POST(request) {
 
   if (b.website) return NextResponse.json({ ok: true }, { status: 201 }); // robot : on fait semblant
 
+  const cfg = await getConfig();
   const nom = String(b.nom || '').trim();
   const telephone = String(b.telephone || '').trim();
   const details = String(b.details || '').trim();
+  const email = String(b.email || '').trim(); // facultatif : sert à envoyer la confirmation du rendez-vous
 
   if (nom.length < 2 || nom.length > 100) return NextResponse.json({ erreur: 'Nom invalide.' }, { status: 400 });
   if (!TEL.test(telephone)) return NextResponse.json({ erreur: 'Numéro de téléphone invalide.' }, { status: 400 });
-  if (!PRESTATIONS.some((p) => p.value === b.prestation)) return NextResponse.json({ erreur: 'Prestation invalide.' }, { status: 400 });
-  if (!COMMUNES.includes(b.commune)) return NextResponse.json({ erreur: 'Commune invalide.' }, { status: 400 });
-  if (!CRENEAUX.includes(b.creneau)) return NextResponse.json({ erreur: 'Créneau invalide.' }, { status: 400 });
+  if (email && (email.length > 150 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) return NextResponse.json({ erreur: 'Adresse e-mail invalide.' }, { status: 400 });
+  if (!construirePrestations(cfg).some((p) => p.value === b.prestation)) return NextResponse.json({ erreur: 'Prestation invalide.' }, { status: 400 });
+  if (!cfg.communes.includes(b.commune)) return NextResponse.json({ erreur: 'Commune invalide.' }, { status: 400 });
+  if (!cfg.creneaux.includes(b.creneau)) return NextResponse.json({ erreur: 'Créneau invalide.' }, { status: 400 });
   if (!jourOuvreFutur(b.date)) return NextResponse.json({ erreur: 'Choisissez un jour ouvré à partir de demain.' }, { status: 400 });
   if (details.length > 1000) return NextResponse.json({ erreur: 'Message trop long.' }, { status: 400 });
+  if (!b.accepteConditions) return NextResponse.json({ erreur: "Merci de cocher la case d'acceptation des conditions d'annulation et de rétractation." }, { status: 400 });
 
   if (MODE_DEMO) return NextResponse.json({ ok: true, demo: true }, { status: 201 }); // validé, mais rien n'est enregistré
 
   try {
     const { error } = await getSupabase().from('rendez_vous').insert({
-      date_rdv: b.date, creneau: b.creneau, nom, telephone,
+      date_rdv: b.date, creneau: b.creneau, nom, telephone, email: email || null,
       prestation: b.prestation, commune: b.commune, details: details || null,
+      conditions_acceptees_le: new Date().toISOString(), // preuve de l'accord du client (demande d'exécution avant la fin du délai de rétractation)
     });
     if (error) {
       if (error.code === '23505') return NextResponse.json({ erreur: 'Créneau déjà réservé.' }, { status: 409 });
@@ -82,11 +88,12 @@ export async function POST(request) {
         `Créneau : ${b.creneau}`,
         `Nom : ${nom}`,
         `Téléphone : ${telephone}`,
+        `E-mail : ${email || '—'}`,
         `Commune : ${b.commune}`,
         `Prestation : ${b.prestation}`,
         `Précisions : ${details || '—'}`,
         '',
-        'À confirmer ou annuler dans Supabase (table rendez_vous, colonne statut).',
+        `À confirmer ou annuler dans le back-office : ${new URL('/admin', request.url).href}`,
       ],
     });
     return NextResponse.json({ ok: true }, { status: 201 });

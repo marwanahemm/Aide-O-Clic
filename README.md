@@ -35,8 +35,17 @@ puis `npm run preview`.
 - `/` accueil & tarifs · `/simulation` · `/rendez-vous` · `/contact` · `/mentions-legales`
 - Les demandes arrivent dans les tables `rendez_vous` et `messages_contact` (Supabase → Table Editor).
   Passer `statut` à `confirme` ou `annule` ; un RDV annulé libère le créneau.
-- Les tarifs (25 € / 35 €), communes et créneaux se modifient dans `src/lib/pricing.js`
-  (si les créneaux changent, mettre aussi à jour la contrainte `creneau` dans `supabase/schema.sql`).
-- Téléphone, e-mail, identité de l'éditeur et durées de conservation : `src/lib/site.js`.
+- **Back-office : `/admin`.** Tarifs, crédit d'impôt, créneaux, communes, téléphone, e-mail, horaires et mentions légales
+  se modifient sans toucher au code ; les rendez-vous (confirmer / annuler) et les messages s'y gèrent aussi.
+  Mise en route : exécuter `supabase/back-office.sql` dans Supabase, puis définir le secret `ADMIN_PASSWORD`
+  (12 caractères minimum) avec `npx wrangler secret put ADMIN_PASSWORD`, en plus de `SUPABASE_URL` et `SUPABASE_SERVICE_ROLE_KEY`.
+  Les valeurs écrites dans `src/lib/pricing.js` et `src/lib/site.js` ne servent plus que de valeurs de départ
+  (utilisées tant que rien n'a été enregistré dans le back-office, ou si la base est injoignable).
+- **Pages légales** : `/mentions-legales`, `/politique-de-confidentialite`, `/politique-de-cookies`, `/conditions-utilisation`
+  et `/annulation-remboursement` (liées dans le pied de page). Elles lisent l'identité de l'éditeur, le médiateur de la
+  consommation, la mention de TVA et le délai d'annulation depuis le back-office (onglets « Coordonnées & mentions légales » et « Tarifs »).
+  Avant d'ouvrir le site au public : exécuter `supabase/conformite.sql`, compléter ces champs (SIRET, n° SAP, médiateur…)
+  et relire les textes. Aucun bandeau de cookies n'est nécessaire tant que le site n'utilise aucun traceur soumis à consentement.
+- Durées de conservation RGPD : `src/lib/site.js` (non modifiables depuis le back-office, car la purge automatique en dépend).
 - Sécurité : RLS activé sans policy → la base est inaccessible avec une clé publique ; seules les routes
   `/api/*` écrivent, côté serveur, avec la clé `service_role` (jamais préfixée `NEXT_PUBLIC_`).
