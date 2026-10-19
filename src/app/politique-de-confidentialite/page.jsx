@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import PageHead, { SectionTitle } from '../../components/PageHead';
-import { RETENTION_RDV_MOIS, RETENTION_CONTACT_MOIS } from '../../lib/site';
+import { RETENTION_RDV_MOIS, RETENTION_CONTACT_MOIS, RETENTION_CLIENT_MOIS } from '../../lib/site';
 import { getConfig } from '../../lib/config';
 import { NOM_SITE } from '../../lib/site';
 
@@ -32,6 +32,8 @@ export default async function Confidentialite() {
             Finalités : organiser et confirmer le rendez-vous, vous envoyer la confirmation par e-mail si vous avez donné votre adresse, et conserver la preuve de votre accord sur les conditions.
             Base légale : mesures précontractuelles prises à votre demande (article 6.1.b du RGPD) ; pour la preuve de votre accord, mon intérêt légitime à pouvoir justifier du respect de mes obligations d’information envers les consommateurs (article 6.1.f).</li>
           <li><strong>Formulaire de contact</strong> : nom, téléphone ou e-mail, message. Finalité : vous répondre. Base légale : mesures précontractuelles à votre demande, ou intérêt légitime à répondre aux questions reçues.</li>
+          <li><strong>Carnet de clients</strong> (tenu par l’éditeur, jamais visible sur le site) : nom, téléphone et/ou e-mail, adresse, commune et notes de suivi sur les interventions réalisées.
+            Finalité : gérer la relation avec mes clients (rendez-vous, devis, factures, suivi). Base légale : exécution du contrat (article 6.1.b du RGPD) et intérêt légitime à assurer le suivi de mes interventions.</li>
         </ul>
         <p>Les champs obligatoires sont strictement ceux dont j’ai besoin pour vous répondre ou vous rappeler : sans eux, je ne peux pas traiter votre demande. Les autres champs sont facultatifs et signalés comme tels. Aucune décision automatisée, aucun profilage, aucune prospection commerciale.</p>
       </div>
@@ -46,6 +48,7 @@ export default async function Confidentialite() {
         <ul>
           <li><strong>Demandes de rendez-vous</strong> : {RETENTION_RDV_MOIS} mois après la date du rendez-vous, puis suppression automatique.</li>
           <li><strong>Messages de contact</strong> : {RETENTION_CONTACT_MOIS} mois après réception, puis suppression automatique.</li>
+          <li><strong>Fiches du carnet de clients</strong> : {RETENTION_CLIENT_MOIS} mois après la dernière mise à jour de la fiche, puis suppression automatique.</li>
           <li><strong>E-mails de notification</strong> reçus par l’éditeur : supprimés dans les mêmes délais.</li>
         </ul>
         <p>Les devis, factures et documents comptables, établis en dehors de ce site, sont conservés selon les obligations légales (10 ans).</p>
@@ -66,7 +69,7 @@ export default async function Confidentialite() {
 
       <div className="card-item">
         <h3 className="card-item-header">7. Cookies et stockage local</h3>
-        <p>Ce site n’utilise aucun traceur publicitaire ni outil de mesure d’audience. Seul votre choix « Mode senior » est mémorisé dans votre navigateur, à votre demande. Le détail figure dans la <Link href="/politique-de-cookies">politique de cookies</Link>.</p>
+        <p>Ce site n’utilise aucun traceur publicitaire ni outil de mesure d’audience. Seul votre choix « Mode accessibilité » est mémorisé dans votre navigateur, à votre demande. Le détail figure dans la <Link href="/politique-de-cookies">politique de cookies</Link>.</p>
       </div>
 
       <div className="card-item">

@@ -1,7 +1,9 @@
 import { estAdmin, adminConfigure } from '../../lib/adminAuth';
 import { getSupabase } from '../../lib/supabase';
 import { getConfig, baseConfiguree } from '../../lib/config';
-import { MODE_DEMO } from '../../lib/site';
+import { MODE_DEMO, RETENTION_CLIENT_MOIS } from '../../lib/site';
+import { FORMULES_DEFAUT, FAQ_DEFAUT, CATALOGUE_DEFAUT } from '../../lib/pricing';
+import { expliquerErreurBase } from '../../lib/erreurs';
 import LoginForm from '../../components/admin/LoginForm';
 import AdminPanel from '../../components/admin/AdminPanel';
 
@@ -26,9 +28,10 @@ export default async function Admin() {
 
   const config = await getConfig();
   const db = getSupabase();
-  const [rdv, msg] = await Promise.all([
+  const [rdv, msg, cli] = await Promise.all([
     db.from('rendez_vous').select('*').order('date_rdv', { ascending: false }).order('creneau').limit(300),
     db.from('messages_contact').select('*').order('created_at', { ascending: false }).limit(300),
+    db.from('clients').select('*').order('nom').limit(500),
   ]);
 
   return (
@@ -36,6 +39,10 @@ export default async function Admin() {
       config={config}
       rendezVous={rdv.data || []}
       messages={msg.data || []}
+      clients={cli.data || []}
+      erreurClients={cli.error ? expliquerErreurBase(cli.error) : ''}
+      defauts={{ formules: FORMULES_DEFAUT, faq: FAQ_DEFAUT, catalogue: CATALOGUE_DEFAUT }}
+      retentionClientMois={RETENTION_CLIENT_MOIS}
       erreurDonnees={rdv.error || msg.error ? 'Lecture des rendez-vous ou messages impossible : vérifiez que supabase/schema.sql a bien été exécuté.' : ''}
       demo={MODE_DEMO}
     />

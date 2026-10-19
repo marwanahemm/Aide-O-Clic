@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSupabase } from '../../../../lib/supabase';
 import { nettoyerConfig } from '../../../../lib/config';
 import { garde } from '../../../../lib/adminAuth';
+import { expliquerErreurBase } from '../../../../lib/erreurs';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,6 +23,6 @@ export async function PUT(request) {
     return NextResponse.json({ ok: true, config: r.config });
   } catch (e) {
     console.error('PUT admin/config', e.message);
-    return NextResponse.json({ erreur: "Enregistrement impossible (la table « parametres » existe-t-elle ? voir supabase/back-office.sql)." }, { status: 500 });
+    return NextResponse.json({ erreur: `Enregistrement impossible. ${expliquerErreurBase(e)}` }, { status: 500 });
   }
 }

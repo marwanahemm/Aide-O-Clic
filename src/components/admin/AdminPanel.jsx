@@ -1,7 +1,13 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { eur } from '../../lib/pricing';
+import { eur, construirePrestations } from '../../lib/pricing';
+import RdvForm from './RdvForm';
+import MessageForm from './MessageForm';
+import ClientsPanel from './ClientsPanel';
+import FormulesEditor from './FormulesEditor';
+import FaqEditor from './FaqEditor';
+import CatalogueEditor from './CatalogueEditor';
 
 async function appel(url, methode, corps) {
   const res = await fetch(url, { method: methode, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corps) });
@@ -16,6 +22,14 @@ function messageStatut(r) {
   if (r.email === 'non_envoye') return { type: 'erreur', texte: `Rendez-vous confirmé, mais l'e-mail n'a pas pu être envoyé : ${r.detail || 'erreur inconnue'}. Pensez à appeler le client.` };
   if (r.email === 'sans_adresse') return { type: 'ok', texte: "Rendez-vous confirmé. Le client n'a pas laissé d'adresse e-mail : pensez à l'appeler." };
   return null;
+}
+
+// Message après création / modification d'un rendez-vous (selon l'e-mail envoyé ou non au client)
+function messageCrud(r, base) {
+  if (r.email === 'envoye') return { type: 'ok', texte: `${base} E-mail envoyé au client.` };
+  if (r.email === 'non_envoye') return { type: 'erreur', texte: `${base} Mais l'e-mail n'a pas pu être envoyé : ${r.detail || 'erreur inconnue'}.` };
+  if (r.email === 'sans_adresse') return { type: 'ok', texte: `${base} Aucune adresse e-mail renseignée : le client n'a pas été prévenu.` };
+  return { type: 'ok', texte: base };
 }
 
 const num = (v) => Number(String(v).replace(',', '.'));
@@ -58,13 +72,18 @@ function ListeEditable({ titre, valeurs, onChange, max, exemple }) {
   );
 }
 
-export default function AdminPanel({ config, rendezVous, messages, erreurDonnees, demo }) {
+export default function AdminPanel({ config, rendezVous, messages, clients = [], erreurClients = '', defauts, retentionClientMois = 36, erreurDonnees, demo }) {
   const router = useRouter();
   const [onglet, setOnglet] = useState('rdv');
   const [cfg, setCfg] = useState(config);
   const [etat, setEtat] = useState({ type: '', texte: '' });
   const [filtre, setFiltre] = useState('tous');
   const [occupe, setOccupe] = useState(false);
+  const [formRdv, setFormRdv] = useState(null); // null = fermé · {} = création · rendez-vous = modification
+  const [formMsg, setFormMsg] = useState(null);
+  const [rechercheRdv, setRechercheRdv] = useState('');
+  const [rechercheMsg, setRechercheMsg] = useState('');
+  const prestations = construirePrestations(config);
 
   const maj = (champ) => (e) => setCfg((c) => ({ ...c, [champ]: e.target.value }));
   const majEditeur = (champ) => (e) => setCfg((c) => ({ ...c, editeur: { ...c.editeur, [champ]: e.target.value } }));
@@ -92,6 +111,26 @@ export default function AdminPanel({ config, rendezVous, messages, erreurDonnees
   const supprimerRdv = (id) => { if (window.confirm('Supprimer définitivement ce rendez-vous ?')) agir(() => appel('/api/admin/rdv', 'DELETE', { id })); };
   const basculerLu = (id, lu) => agir(() => appel('/api/admin/messages', 'PATCH', { id, lu }));
   const supprimerMsg = (id) => { if (window.confirm('Supprimer définitivement ce message ?')) agir(() => appel('/api/admin/messages', 'DELETE', { id })); };
+  const enregistrerRdv = (payload) => agir(
+    () => appel('/api/admin/rdv', payload.id ? 'PUT' : 'POST', payload),
+    (r) => { setFormRdv(null); return messageCrud(r, payload.id ? 'Rendez-vous modifié.' : 'Rendez-vous créé.'); },
+  );
+  const enregistrerMsg = (payload) => agir(
+    () => appel('/api/admin/messages', payload.id ? 'PUT' : 'POST', payload),
+    () => { setFormMsg(null); return { type: 'ok', texte: payload.id ? 'Message modifié.' : 'Message ajouté.' }; },
+  );
+  const enregistrerClient = (payload, fermer) => agir(
+    () => appel('/api/admin/clients', payload.id ? 'PUT' : 'POST', payload),
+    () => { fermer(); return { type: 'ok', texte: payload.id ? 'Fiche client modifiée.' : 'Client ajouté.' }; },
+  );
+  const supprimerClient = (id) => { if (window.confirm('Supprimer définitivement cette fiche client ?')) agir(() => appel('/api/admin/clients', 'DELETE', { id }), 'Fiche client supprimée.'); };
+  const toucherClient = (id) => agir(() => appel('/api/admin/clients', 'PATCH', { id }), 'Fiche conservée : le délai de suppression automatique repart de zéro.');
+  const nouveauRdvPour = (c) => {
+    setFormRdv({ nom: c.nom, telephone: c.telephone, email: c.email, commune: c.commune });
+    setOnglet('rdv');
+    setEtat({ type: '', texte: '' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
   const deconnecter = async () => { await fetch('/api/admin/logout', { method: 'POST' }); router.refresh(); };
 
   const nonLus = messages.filter((m) => !m.lu).length;
@@ -99,17 +138,20 @@ export default function AdminPanel({ config, rendezVous, messages, erreurDonnees
   const onglets = [
     ['rdv', `Rendez-vous${enAttente ? ` (${enAttente})` : ''}`],
     ['messages', `Messages${nonLus ? ` (${nonLus})` : ''}`],
-    ['tarifs', 'Tarifs'],
+    ['clients', `Clients${clients.length ? ` (${clients.length})` : ''}`],
+    ['tarifs', 'Formules & tarifs'],
+    ['catalogue', 'Catalogue'],
+    ['faq', 'FAQ'],
     ['lieux', 'Créneaux & communes'],
     ['coordonnees', 'Coordonnées & mentions légales'],
   ];
 
-  const ph = num(cfg.prixHeure);
-  const pp = num(cfg.prixPack2h);
-  const reste = 1 - num(cfg.creditImpotPct) / 100;
-  const apercu = (n) => (Number.isFinite(n) ? eur(n) : '—');
-
-  const rdvAffiches = rendezVous.filter((r) => filtre === 'tous' || r.statut === filtre);
+  const correspond = (recherche, ...champs) => {
+    const q = recherche.trim().toLowerCase();
+    return !q || champs.some((c) => String(c ?? '').toLowerCase().includes(q));
+  };
+  const rdvAffiches = rendezVous.filter((r) => (filtre === 'tous' || r.statut === filtre) && correspond(rechercheRdv, r.nom, r.telephone, r.email, r.commune, r.prestation, r.details));
+  const messagesAffiches = messages.filter((m) => correspond(rechercheMsg, m.nom, m.contact, m.message));
 
   return (
     <div style={{ marginTop: 20 }}>
@@ -140,15 +182,28 @@ export default function AdminPanel({ config, rendezVous, messages, erreurDonnees
 
       {onglet === 'rdv' && (
         <>
-          <div className="form-group" style={{ maxWidth: 260 }}>
-            <label className="form-label" htmlFor="filtre">Afficher</label>
-            <select id="filtre" className="form-select" value={filtre} onChange={(e) => setFiltre(e.target.value)}>
-              <option value="tous">Tous les rendez-vous</option>
-              <option value="en_attente">En attente</option>
-              <option value="confirme">Confirmés</option>
-              <option value="annule">Annulés</option>
-            </select>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: 8 }}>
+            <div className="form-group" style={{ minWidth: 200, flex: '0 1 240px' }}>
+              <label className="form-label" htmlFor="filtre">Afficher</label>
+              <select id="filtre" className="form-select" value={filtre} onChange={(e) => setFiltre(e.target.value)}>
+                <option value="tous">Tous les rendez-vous</option>
+                <option value="en_attente">En attente</option>
+                <option value="confirme">Confirmés</option>
+                <option value="annule">Annulés</option>
+              </select>
+            </div>
+            <div className="form-group" style={{ minWidth: 200, flex: '1 1 240px' }}>
+              <label className="form-label" htmlFor="recherche">Rechercher</label>
+              <input id="recherche" type="search" className="form-input" value={rechercheRdv} onChange={(e) => setRechercheRdv(e.target.value)} placeholder="Nom, téléphone, commune…" />
+            </div>
+            <div className="form-group">
+              <button type="button" className="btn btn-cta" disabled={occupe} onClick={() => { setFormRdv({}); setEtat({ type: '', texte: '' }); }}>➕ Nouveau rendez-vous</button>
+            </div>
           </div>
+          {formRdv && (
+            <RdvForm key={formRdv.id || formRdv.nom || 'nouveau'} initial={formRdv} creneaux={cfg.creneaux} communes={cfg.communes} prestations={prestations} clients={clients}
+              occupe={occupe} onSave={enregistrerRdv} onCancel={() => setFormRdv(null)} />
+          )}
           {rdvAffiches.length === 0 && <p>Aucun rendez-vous.</p>}
           {rdvAffiches.map((r) => {
             const s = STATUTS[r.statut] || STATUTS.en_attente;
@@ -168,6 +223,7 @@ export default function AdminPanel({ config, rendezVous, messages, erreurDonnees
                   {r.statut === 'confirme' && r.email && <button type="button" className="slot-btn" disabled={occupe} onClick={() => changerStatut(r.id, 'confirme', true)}>✉️ Renvoyer l&apos;e-mail de confirmation</button>}
                   {r.statut !== 'annule' && <button type="button" className="slot-btn" disabled={occupe} onClick={() => changerStatut(r.id, 'annule')}>❌ Annuler (libère le créneau)</button>}
                   {r.statut !== 'en_attente' && <button type="button" className="slot-btn" disabled={occupe} onClick={() => changerStatut(r.id, 'en_attente')}>↩️ Remettre en attente</button>}
+                  <button type="button" className="slot-btn" disabled={occupe} onClick={() => { setFormRdv(r); setEtat({ type: '', texte: '' }); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>✏️ Modifier</button>
                   <button type="button" className="slot-btn" disabled={occupe} onClick={() => supprimerRdv(r.id)}>🗑️ Supprimer</button>
                 </div>
               </div>
@@ -178,8 +234,18 @@ export default function AdminPanel({ config, rendezVous, messages, erreurDonnees
 
       {onglet === 'messages' && (
         <>
-          {messages.length === 0 && <p>Aucun message.</p>}
-          {messages.map((m) => (
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: 8 }}>
+            <div className="form-group" style={{ minWidth: 200, flex: '1 1 240px' }}>
+              <label className="form-label" htmlFor="recherche-m">Rechercher</label>
+              <input id="recherche-m" type="search" className="form-input" value={rechercheMsg} onChange={(e) => setRechercheMsg(e.target.value)} placeholder="Nom, contact, mot du message…" />
+            </div>
+            <div className="form-group">
+              <button type="button" className="btn btn-cta" disabled={occupe} onClick={() => { setFormMsg({}); setEtat({ type: '', texte: '' }); }}>➕ Nouveau message</button>
+            </div>
+          </div>
+          {formMsg && <MessageForm key={formMsg.id || 'nouveau'} initial={formMsg} occupe={occupe} onSave={enregistrerMsg} onCancel={() => setFormMsg(null)} />}
+          {messagesAffiches.length === 0 && <p>Aucun message.</p>}
+          {messagesAffiches.map((m) => (
             <div key={m.id} className="card-item" style={{ padding: 16, marginBottom: 12, borderLeft: m.lu ? undefined : '4px solid var(--cyan-accent)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
                 <strong>{m.nom} — {m.contact}</strong>
@@ -188,6 +254,7 @@ export default function AdminPanel({ config, rendezVous, messages, erreurDonnees
               <p style={{ margin: '8px 0', whiteSpace: 'pre-wrap' }}>{m.message}</p>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <button type="button" className="slot-btn" disabled={occupe} onClick={() => basculerLu(m.id, !m.lu)}>{m.lu ? 'Marquer comme non lu' : 'Marquer comme lu'}</button>
+                <button type="button" className="slot-btn" disabled={occupe} onClick={() => { setFormMsg(m); setEtat({ type: '', texte: '' }); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>✏️ Modifier</button>
                 <button type="button" className="slot-btn" disabled={occupe} onClick={() => supprimerMsg(m.id)}>🗑️ Supprimer</button>
               </div>
             </div>
@@ -195,24 +262,38 @@ export default function AdminPanel({ config, rendezVous, messages, erreurDonnees
         </>
       )}
 
+      {onglet === 'clients' && (
+        <ClientsPanel clients={clients} erreur={erreurClients} communes={cfg.communes} retentionMois={retentionClientMois} occupe={occupe}
+          onSave={enregistrerClient} onDelete={supprimerClient} onTouch={toucherClient} onNouveauRdv={nouveauRdvPour} />
+      )}
+
       {onglet === 'tarifs' && (
-        <div className="card-item" style={{ padding: 20 }}>
-          <div className="card-item-header">💶 Tarifs, crédit d&apos;impôt et annulation</div>
-          <div className="grid-3">
-            <Champ id="ph" label="Prix de l'heure (€)"><input id="ph" className="form-input" inputMode="decimal" value={cfg.prixHeure} onChange={maj('prixHeure')} /></Champ>
-            <Champ id="pp" label="Prix du pack 2 heures (€)"><input id="pp" className="form-input" inputMode="decimal" value={cfg.prixPack2h} onChange={maj('prixPack2h')} /></Champ>
-            <Champ id="ci" label="Crédit d'impôt (%)"><input id="ci" className="form-input" inputMode="decimal" value={cfg.creditImpotPct} onChange={maj('creditImpotPct')} /></Champ>
+        <>
+          <FormulesEditor formules={cfg.formules} onChange={(formules) => setCfg((c) => ({ ...c, formules }))} creditImpotPct={cfg.creditImpotPct} defauts={defauts.formules} />
+          <div className="card-item" style={{ padding: 20, marginBottom: 16 }}>
+            <div className="card-item-header">💳 Crédit d&apos;impôt et annulation</div>
+            <div className="grid-2" style={{ marginBottom: 0 }}>
+              <Champ id="ci" label="Crédit d'impôt (%)"><input id="ci" className="form-input" inputMode="decimal" value={cfg.creditImpotPct} onChange={maj('creditImpotPct')} /></Champ>
+              <Champ id="ah" label="Annulation sans frais jusqu'à (heures avant le rendez-vous)"><input id="ah" className="form-input" inputMode="numeric" value={cfg.annulationHeures} onChange={maj('annulationHeures')} /></Champ>
+            </div>
+            <p style={{ fontSize: 13 }}>Le délai est affiché sur la page « Annulation et remboursement ». Mettre 0 pour permettre l&apos;annulation sans frais à tout moment.</p>
           </div>
-          <div style={{ maxWidth: 420 }}>
-            <Champ id="ah" label="Annulation sans frais jusqu'à (heures avant le rendez-vous)"><input id="ah" className="form-input" inputMode="numeric" value={cfg.annulationHeures} onChange={maj('annulationHeures')} /></Champ>
-            <p style={{ fontSize: 13, marginTop: -8 }}>Affiché sur la page « Annulation et remboursement ». Mettre 0 pour permettre l&apos;annulation sans frais à tout moment.</p>
-          </div>
-          <p style={{ margin: '8px 0 16px', fontSize: 14 }}>
-            Aperçu sur le site : forfait 1h = <strong>{apercu(ph)}</strong> brut, <strong>{apercu(ph * reste)}</strong> après crédit d&apos;impôt ·
-            forfait 2h = <strong>{apercu(pp)}</strong> brut, <strong>{apercu(pp * reste)}</strong> après crédit d&apos;impôt.
-          </p>
-          <button type="button" className="btn-primary" disabled={occupe} onClick={enregistrer}>{occupe ? 'Enregistrement…' : 'Enregistrer les tarifs'}</button>
-        </div>
+          <button type="button" className="btn-primary" disabled={occupe} onClick={enregistrer}>{occupe ? 'Enregistrement…' : 'Enregistrer les formules et tarifs'}</button>
+        </>
+      )}
+
+      {onglet === 'catalogue' && (
+        <>
+          <CatalogueEditor catalogue={cfg.catalogue} onChange={(catalogue) => setCfg((c) => ({ ...c, catalogue }))} defauts={defauts.catalogue} />
+          <button type="button" className="btn-primary" disabled={occupe} onClick={enregistrer}>{occupe ? 'Enregistrement…' : 'Enregistrer le catalogue'}</button>
+        </>
+      )}
+
+      {onglet === 'faq' && (
+        <>
+          <FaqEditor faq={cfg.faq} onChange={(faq) => setCfg((c) => ({ ...c, faq }))} defauts={defauts.faq} />
+          <button type="button" className="btn-primary" disabled={occupe} onClick={enregistrer}>{occupe ? 'Enregistrement…' : 'Enregistrer la FAQ'}</button>
+        </>
       )}
 
       {onglet === 'lieux' && (

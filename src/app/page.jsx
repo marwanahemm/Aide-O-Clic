@@ -1,7 +1,11 @@
 import Link from 'next/link';
 import Icon from '../components/Icon';
 import HeroArt from '../components/HeroArt';
-import { eur } from '../lib/pricing';
+import Reveal from '../components/Reveal';
+import CountUp from '../components/CountUp';
+import Catalogue from '../components/Catalogue';
+import RichText, { remplacer } from '../components/RichText';
+import { eur, nombre, heuresTxt, reductionFormule } from '../lib/pricing';
 import { getConfig } from '../lib/config';
 import { NOM_SITE } from '../lib/site';
 
@@ -9,15 +13,23 @@ export const dynamic = 'force-dynamic'; // les tarifs, communes et coordonnées 
 
 export default async function Accueil() {
   const {
-    prixHeure: PRIX_HEURE, prixPack2h: PRIX_PACK_2H, creditImpot: CREDIT_IMPOT, creditImpotPct: PCT,
-    communes: COMMUNES, telephone: TELEPHONE, telephoneHref: TEL_HREF, annulationHeures: HEURES,
+    formules: FORMULES, tarifHoraire: REF, faq: FAQ, catalogue: CATALOGUE, creditImpot: CREDIT_IMPOT, creditImpotPct: PCT,
+    communes: COMMUNES, telephone: TELEPHONE, telephoneHref: TEL_HREF, email: EMAIL, annulationHeures: HEURES,
   } = await getConfig();
+  // Valeurs utilisables dans les textes de la FAQ modifiés depuis le back-office : {pct}, {communes}, {telephone}…
+  const VARS = {
+    pct: PCT, reste: 100 - PCT, communes: COMMUNES.join(', '), telephone: TELEPHONE, tel: TEL_HREF, email: EMAIL,
+    annulation: HEURES > 0 ? `C’est sans frais jusqu’à ${HEURES} heures avant le rendez-vous.` : 'C’est sans frais, à tout moment.',
+  };
   const RESTE = 1 - CREDIT_IMPOT; // part payée par le client après crédit d'impôt
+  const MIN_NET_HEURE = Math.min(...FORMULES.map((f) => (f.prix / f.heures) * RESTE)); // meilleur prix de l'heure après crédit d'impôt
 
   return (
     <>
       {/* ===== Héros ===== */}
       <section className="hero" aria-labelledby="titre-accueil">
+        <span className="hero-orb o1" aria-hidden="true" />
+        <span className="hero-orb o2" aria-hidden="true" />
         <div>
           <p className="hero-eyebrow"><Icon name="sparkle" size={18} /> {NOM_SITE} · Services à la personne · Bassin d&apos;Agen</p>
           <h1 id="titre-accueil">Votre assistant <em>administratif et informatique</em>, chez vous.</h1>
@@ -35,8 +47,16 @@ export default async function Accueil() {
         <div className="hero-art"><HeroArt pct={PCT} /></div>
       </section>
 
+      {/* ===== Chiffres clés ===== */}
+      <Reveal as="section" className="stats" aria-label="Chiffres clés">
+        <div className="stat"><strong><CountUp fin={PCT} suffixe=" %" /></strong><span>de crédit d&apos;impôt</span></div>
+        <div className="stat"><strong>0 €</strong><span>de frais de déplacement</span></div>
+        <div className="stat"><strong><CountUp fin={COMMUNES.length} /></strong><span>communes desservies</span></div>
+        <div className="stat"><strong>dès <CountUp fin={MIN_NET_HEURE} decimales={2} suffixe=" €" />/h</strong><span>après crédit d&apos;impôt</span></div>
+      </Reveal>
+
       {/* ===== Comment ça marche ===== */}
-      <section className="section" aria-labelledby="t-etapes">
+      <Reveal as="section" className="section" aria-labelledby="t-etapes">
         <div className="section-head center">
           <span className="kicker">Simple comme un clic</span>
           <h2 id="t-etapes">Comment ça se passe ?</h2>
@@ -59,42 +79,22 @@ export default async function Accueil() {
             <p>Grâce au crédit d&apos;impôt de {PCT} %, votre coût réel est divisé. Une attestation fiscale annuelle vous est remise.</p>
           </div>
         </div>
-      </section>
+      </Reveal>
 
-      {/* ===== Prestations ===== */}
-      <section className="section" aria-labelledby="t-prestations">
-        <div className="section-head">
-          <span className="kicker">Ce que je fais pour vous</span>
-          <h2 id="t-prestations">Deux domaines d&apos;aide, à la maison</h2>
-        </div>
-        <div className="grid-2">
-          <article className="service-card">
-            <div className="service-icon"><Icon name="file" size={28} /></div>
-            <h3>Assistance administrative</h3>
-            <p className="lead">Un accompagnement complet sur vos démarches du quotidien.</p>
-            <ul className="check-list">
-              <li><strong>Démarches en ligne :</strong> CAF, France Travail, Ameli / CPAM, déclaration d&apos;impôts, CARSAT / retraite, ANTS (carte grise, identité).</li>
-              <li><strong>Gestion de courriers :</strong> rédaction, mise en forme et envoi de lettres officielles ou administratives.</li>
-              <li><strong>Organisation &amp; classement :</strong> rangement de vos factures, documents de santé et création d&apos;un dossier numérique sécurisé.</li>
-              <li><strong>Comptes personnels :</strong> création et gestion simplifiée de vos identifiants (FranceConnect) et mots de passe en toute sécurité.</li>
-            </ul>
-          </article>
-          <article className="service-card">
-            <div className="service-icon"><Icon name="laptop" size={28} /></div>
-            <h3>Assistance informatique</h3>
-            <p className="lead">Installation, prise en main et dépannage tout en douceur.</p>
-            <ul className="check-list">
-              <li><strong>Matériel &amp; réseau :</strong> configuration de votre box Internet (Wi-Fi), imprimante, ordinateur portable, tablette ou smartphone.</li>
-              <li><strong>Initiation :</strong> apprendre à envoyer des e-mails, faire un appel vidéo avec vos proches (WhatsApp) et naviguer sans risque.</li>
-              <li><strong>Sécurité &amp; nettoyage :</strong> protection contre les arnaques Internet, suppression des fenêtres publicitaires, appareil sécurisé.</li>
-              <li><strong>Sauvegarde de souvenirs :</strong> transfert de vos photos familiales et documents sur clé USB ou disque dur externe.</li>
-            </ul>
-          </article>
-        </div>
-      </section>
+      {/* ===== Prestations (catalogue modifiable dans le back-office) ===== */}
+      {CATALOGUE.length > 0 && (
+        <Reveal as="section" className="section" aria-labelledby="t-prestations">
+          <div className="section-head center">
+            <span className="kicker">Ce que je fais pour vous</span>
+            <h2 id="t-prestations">Mes prestations, à la maison</h2>
+            <p className="lead">Choisissez un domaine et découvrez, en détail, tout ce que je peux faire chez vous.</p>
+          </div>
+          <Catalogue catalogue={CATALOGUE} />
+        </Reveal>
+      )}
 
       {/* ===== Engagements ===== */}
-      <section className="section" aria-labelledby="t-engagements">
+      <Reveal as="section" className="section" aria-labelledby="t-engagements">
         <div className="section-head center">
           <span className="kicker">Mes engagements</span>
           <h2 id="t-engagements">Une aide pensée pour vous mettre à l&apos;aise</h2>
@@ -116,10 +116,10 @@ export default async function Accueil() {
             <p>Équipement d&apos;appoint avec connexion Internet 5G+ sécurisée, en cas de problème de réseau ou d&apos;absence de box Wi-Fi chez vous.</p>
           </div>
         </div>
-      </section>
+      </Reveal>
 
       {/* ===== À propos ===== */}
-      <section className="section" aria-labelledby="t-apropos">
+      <Reveal as="section" className="section" aria-labelledby="t-apropos">
         <div className="about">
           <div className="about-text">
             <span className="kicker">Qui suis-je ?</span>
@@ -132,64 +132,50 @@ export default async function Accueil() {
             <div className="fact"><Icon name="pin" size={28} /><div><strong>Bassin d&apos;Agen</strong><span>Je viens chez vous</span></div></div>
           </div>
         </div>
-      </section>
+      </Reveal>
 
       {/* ===== Tarifs ===== */}
-      <section className="section" aria-labelledby="t-tarifs" id="tarifs">
+      <Reveal as="section" className="section" aria-labelledby="t-tarifs" id="tarifs">
         <div className="section-head center">
           <span className="kicker">Tarifs clairs</span>
           <h2 id="t-tarifs">Sans frais cachés, {PCT} % déductibles</h2>
           <p className="lead">Le prix affiché est celui de l&apos;intervention, déplacement compris.</p>
         </div>
         <div className="pricing-grid">
-          <div className="pricing-card">
-            <div>
-              <h3 className="pricing-title">Forfait 1 heure</h3>
-              <p className="pricing-sub">Intervention ponctuelle : débloquer une démarche précise ou résoudre un problème informatique.</p>
-              <div className="pricing-price">
-                <div className="price-gross">{eur(PRIX_HEURE)} <span>brut</span></div>
-                <div className="price-net">Coût réel : {eur(PRIX_HEURE * RESTE)} après crédit d&apos;impôt ({PCT} %)</div>
+          {FORMULES.map((f) => {
+            const reduction = reductionFormule(f, REF);
+            return (
+              <div key={f.nom} className={'pricing-card' + (f.badge ? ' featured' : '')}>
+                {f.badge && <span className="ribbon">{f.badge}</span>}
+                <div>
+                  <h3 className="pricing-title">{f.nom}</h3>
+                  {f.description && <p className="pricing-sub">{f.description}</p>}
+                  <div className="pricing-price">
+                    <div className="price-gross">{eur(f.prix)} <span>brut{f.heures !== 1 ? ` · ${heuresTxt(f.heures)} h` : ''}</span></div>
+                    <div className="price-net">
+                      Coût réel : {eur(f.prix * (1 - CREDIT_IMPOT))} après crédit d&apos;impôt ({PCT} %)
+                      {f.heures > 1 ? ` (soit ${eur((f.prix * (1 - CREDIT_IMPOT)) / f.heures)}/h)` : ''}
+                    </div>
+                  </div>
+                  <ul className="check-list" style={{ marginBottom: 24 }}>
+                    {f.points.map((p) => <li key={p}>{p}</li>)}
+                    {reduction > 0 && <li>Réduction de {eur(reduction)} par rapport au tarif horaire</li>}
+                  </ul>
+                </div>
+                <Link href="/rendez-vous" className={'btn ' + (f.badge ? 'btn-cta' : 'btn-primary')} aria-label={`Réserver cette formule : ${f.nom}, ${nombre(f.prix)} euros brut`}>
+                  Réserver cette formule <Icon name="arrow" size={20} />
+                </Link>
               </div>
-              <ul className="check-list" style={{ marginBottom: 24 }}>
-                <li>1 heure complète d&apos;accompagnement à domicile</li>
-                <li>Déplacement inclus (communes desservies)</li>
-                <li>Prise en charge pas à pas, explications simples</li>
-                <li>Attestation fiscale annuelle fournie</li>
-              </ul>
-            </div>
-            <Link href="/rendez-vous" className="btn btn-primary" aria-label={`Réserver le forfait 1h, ${PRIX_HEURE} euros brut`}>
-              Réserver le forfait 1h <Icon name="arrow" size={20} />
-            </Link>
-          </div>
-
-          <div className="pricing-card featured">
-            <span className="ribbon">Le plus avantageux à l&apos;heure</span>
-            <div>
-              <h3 className="pricing-title">Forfait 2 heures — pack approfondi</h3>
-              <p className="pricing-sub">Pour un dossier complexe, une formation à votre rythme ou une installation complète.</p>
-              <div className="pricing-price">
-                <div className="price-gross">{eur(PRIX_PACK_2H)} <span>brut</span></div>
-                <div className="price-net">Coût réel : {eur(PRIX_PACK_2H * RESTE)} après crédit d&apos;impôt (soit {eur((PRIX_PACK_2H * RESTE) / 2)}/h)</div>
-              </div>
-              <ul className="check-list" style={{ marginBottom: 24 }}>
-                <li>2 heures consécutives à votre domicile</li>
-                <li>Diagnostic complet + prise en main guidée</li>
-                <li>Réduction de {eur(PRIX_HEURE * 2 - PRIX_PACK_2H)} par rapport au tarif standard</li>
-                <li>Rédaction d&apos;un guide sur mesure si besoin</li>
-              </ul>
-            </div>
-            <Link href="/rendez-vous" className="btn btn-cta" aria-label={`Réserver le forfait 2h, ${PRIX_PACK_2H} euros brut`}>
-              Réserver le forfait 2h <Icon name="arrow" size={20} />
-            </Link>
-          </div>
+            );
+          })}
         </div>
         <p className="pricing-note">
           Besoin d&apos;un autre volume d&apos;heures ? <Link href="/simulation">Calculez votre budget</Link> · <Link href="/annulation-remboursement">Conditions d&apos;annulation et de remboursement</Link>
         </p>
-      </section>
+      </Reveal>
 
       {/* ===== Zone ===== */}
-      <section className="section" aria-labelledby="t-zone">
+      <Reveal as="section" className="section" aria-labelledby="t-zone">
         <div className="zone">
           <div className="zone-icon"><Icon name="pin" size={34} /></div>
           <div>
@@ -198,51 +184,35 @@ export default async function Accueil() {
             <div>{COMMUNES.map((c) => <span key={c} className="commune-badge">{c}</span>)}</div>
           </div>
         </div>
-      </section>
+      </Reveal>
 
-      {/* ===== FAQ ===== */}
-      <section className="section" aria-labelledby="t-faq">
-        <div className="section-head center">
-          <span className="kicker">Questions fréquentes</span>
-          <h2 id="t-faq">Vous vous demandez peut-être…</h2>
-        </div>
-        <div className="faq">
-          <details>
-            <summary>Comment fonctionne le crédit d&apos;impôt de {PCT} % ? <Icon name="chevron" size={22} /></summary>
-            <div className="faq-body">Grâce au dispositif Avance Immédiate du Cesu / Urssaf, vous ne réglez que le montant net ({100 - PCT} % de la prestation). Si vous préférez le paiement classique, {PCT} % du montant dépensé vous sera déduit lors de votre déclaration d&apos;impôt annuelle. <Link href="/simulation">Estimer mon reste à charge</Link></div>
-          </details>
-          <details>
-            <summary>Y a-t-il des frais de déplacement ? <Icon name="chevron" size={22} /></summary>
-            <div className="faq-body">Non : le déplacement est inclus dans les communes desservies ({COMMUNES.join(', ')}). Aucun supplément ne vous sera facturé.</div>
-          </details>
-          <details>
-            <summary>Je n&apos;ai pas Internet chez moi, est-ce un problème ? <Icon name="chevron" size={22} /></summary>
-            <div className="faq-body">Pas du tout : je viens avec un équipement d&apos;appoint et une connexion Internet 5G+ sécurisée pour pouvoir avancer sur vos démarches.</div>
-          </details>
-          <details>
-            <summary>Comment réserver ? <Icon name="chevron" size={22} /></summary>
-            <div className="faq-body">En ligne, <Link href="/rendez-vous">en choisissant une date et un créneau</Link>, ou simplement par téléphone au <a href={TEL_HREF}>{TELEPHONE}</a>.</div>
-          </details>
-          <details>
-            <summary>Et si je dois annuler ou reporter ? <Icon name="chevron" size={22} /></summary>
-            <div className="faq-body">{HEURES > 0 ? `C’est sans frais jusqu’à ${HEURES} heures avant le rendez-vous. ` : 'C’est sans frais, à tout moment. '}Vous disposez aussi d&apos;un droit de rétractation de 14 jours. <Link href="/annulation-remboursement">Voir toutes les conditions</Link></div>
-          </details>
-          <details>
-            <summary>Mes données sont-elles protégées ? <Icon name="chevron" size={22} /></summary>
-            <div className="faq-body">Vos informations servent uniquement à traiter votre demande et ne sont jamais revendues. <Link href="/politique-de-confidentialite">Lire la politique de confidentialité</Link></div>
-          </details>
-        </div>
-      </section>
+      {/* ===== FAQ (modifiable dans le back-office) ===== */}
+      {FAQ.length > 0 && (
+        <Reveal as="section" className="section" aria-labelledby="t-faq">
+          <div className="section-head center">
+            <span className="kicker">Questions fréquentes</span>
+            <h2 id="t-faq">Vous vous demandez peut-être…</h2>
+          </div>
+          <div className="faq">
+            {FAQ.map((item, i) => (
+              <details key={i}>
+                <summary>{remplacer(item.q, VARS)} <Icon name="chevron" size={22} /></summary>
+                <div className="faq-body"><RichText texte={remplacer(item.r, VARS)} /></div>
+              </details>
+            ))}
+          </div>
+        </Reveal>
+      )}
 
       {/* ===== Appel à l'action ===== */}
-      <section className="cta-band" aria-labelledby="t-cta">
+      <Reveal as="section" className="cta-band" aria-labelledby="t-cta">
         <h2 id="t-cta">Prêt à vous faire aider ?</h2>
         <p>Une question avant de vous lancer ? Appelez-moi : je vous réponds avec plaisir.</p>
         <div className="hero-actions">
           <Link href="/rendez-vous" className="btn btn-cta btn-lg"><Icon name="calendar" size={22} /> Prendre rendez-vous</Link>
           <a href={TEL_HREF} className="btn btn-outline-light btn-lg"><Icon name="phone" size={22} /> {TELEPHONE}</a>
         </div>
-      </section>
+      </Reveal>
     </>
   );
 }

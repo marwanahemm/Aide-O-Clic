@@ -44,8 +44,9 @@ puis `npm run preview`.
 - **Pages légales** : `/mentions-legales`, `/politique-de-confidentialite`, `/politique-de-cookies`, `/conditions-utilisation`
   et `/annulation-remboursement` (liées dans le pied de page). Elles lisent l'identité de l'éditeur, le médiateur de la
   consommation, la mention de TVA et le délai d'annulation depuis le back-office (onglets « Coordonnées & mentions légales » et « Tarifs »).
-  Avant d'ouvrir le site au public : exécuter `supabase/conformite.sql`, compléter ces champs (SIRET, n° SAP, médiateur…)
+  Avant d'ouvrir le site au public : exécuter `supabase/conformite.sql` (et `supabase/gestion.sql` pour le carnet de clients), compléter ces champs (SIRET, n° SAP, médiateur…)
   et relire les textes. Aucun bandeau de cookies n'est nécessaire tant que le site n'utilise aucun traceur soumis à consentement.
+- **Gestion depuis `/admin`** : formules et tarifs (ajout / modification / suppression, jusqu'à 6), FAQ de l'accueil, carnet de clients, rendez-vous et messages. Les formules et la FAQ sont stockées dans `parametres` (aucun SQL) ; le carnet de clients demande `supabase/gestion.sql`.
 - Durées de conservation RGPD : `src/lib/site.js` (non modifiables depuis le back-office, car la purge automatique en dépend).
 - Sécurité : RLS activé sans policy → la base est inaccessible avec une clé publique ; seules les routes
   `/api/*` écrivent, côté serveur, avec la clé `service_role` (jamais préfixée `NEXT_PUBLIC_`).

@@ -7,13 +7,13 @@ const JOURS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const dateLongue = (isoDate) => new Date(`${isoDate}T12:00:00`).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
 
-export default function BookingForm({ creneaux, communes, prestations }) {
+export default function BookingForm({ creneaux, communes, prestations, prestationInitiale = '' }) {
   const [mois, setMois] = useState(null); // { y, m } — défini après affichage pour éviter un décalage serveur/navigateur
   const [demain, setDemain] = useState(null);
   const [jour, setJour] = useState('');
   const [creneau, setCreneau] = useState('');
   const [pris, setPris] = useState([]);
-  const [prestation, setPrestation] = useState(prestations[0]?.value || '');
+  const [prestation, setPrestation] = useState(() => prestations.find((p) => p.value === prestationInitiale)?.value || prestations[0]?.value || '');
   const [commune, setCommune] = useState(communes[0] || '');
   const [etat, setEtat] = useState({ type: '', texte: '' });
   const [envoi, setEnvoi] = useState(false);

@@ -19,7 +19,7 @@ export const metadata = {
 
 export const viewport = { themeColor: '#1b2535', width: 'device-width', initialScale: 1 };
 
-// Applique le mode senior AVANT l'affichage (évite un « flash » en mode normal)
+// Applique le mode accessibilité AVANT l'affichage (évite un « flash » en mode normal)
 const initMode = `try{if(localStorage.getItem('sap-mode')==='senior')document.documentElement.setAttribute('data-mode','senior')}catch(e){}`;
 
 export default async function RootLayout({ children }) {

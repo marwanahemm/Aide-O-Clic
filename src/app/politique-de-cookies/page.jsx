@@ -25,7 +25,7 @@ export default async function Cookies() {
       <div className="card-item">
         <h3 className="card-item-header">Ce qui est mémorisé, précisément</h3>
         <ul>
-          <li><strong>« sap-mode »</strong> (stockage local du navigateur) — mémorise votre choix du « Mode senior » (textes agrandis, contrastes renforcés). Créé uniquement quand vous actionnez le bouton, jamais transmis à un serveur, conservé jusqu’à ce que vous l’effaciez.</li>
+          <li><strong>« sap-mode »</strong> (stockage local du navigateur) — mémorise votre choix du « Mode accessibilité » (textes agrandis, contrastes renforcés). Créé uniquement quand vous actionnez le bouton, jamais transmis à un serveur, conservé jusqu’à ce que vous l’effaciez.</li>
           <li><strong>« admin_session »</strong> (cookie) — utilisé uniquement par l’éditeur du site après connexion à son espace d’administration, valable 8 heures. Les visiteurs ne le reçoivent jamais.</li>
           <li><strong>Cookie technique de sécurité de Cloudflare</strong> (par exemple « __cf_bm ») — peut être déposé par notre hébergeur pour distinguer les visiteurs des robots malveillants. Il est strictement nécessaire à la sécurité du site, de courte durée (environ 30 minutes), et ne sert à aucun suivi.</li>
         </ul>
@@ -38,7 +38,7 @@ export default async function Cookies() {
 
       <div className="card-item">
         <h3 className="card-item-header">Supprimer ou bloquer</h3>
-        <p>Vous pouvez à tout moment désactiver le « Mode senior » avec le bouton en haut de page, ou effacer les données du site dans les réglages de votre navigateur (rubrique « Confidentialité » ou « Cookies et données de sites »). Cela ne gêne pas le fonctionnement du site.</p>
+        <p>Vous pouvez à tout moment désactiver le « Mode accessibilité » avec le bouton en haut de page, ou effacer les données du site dans les réglages de votre navigateur (rubrique « Confidentialité » ou « Cookies et données de sites »). Cela ne gêne pas le fonctionnement du site.</p>
         <p>Plus d’informations sur vos données : <Link href="/politique-de-confidentialite">politique de confidentialité</Link> — une question ? <a href={`mailto:${EMAIL}`}>{EMAIL}</a>.</p>
       </div>
     </div>

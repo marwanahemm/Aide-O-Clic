@@ -8,7 +8,7 @@ export const metadata = { title: 'Simulateur de budget' };
 export const dynamic = 'force-dynamic';
 
 export default async function Simulation() {
-  const { prixHeure: PRIX_HEURE, prixPack2h: PRIX_PACK_2H, creditImpot: CREDIT_IMPOT, creditImpotPct: PCT } = await getConfig();
+  const { formules: FORMULES, tarifHoraire: REF, creditImpot: CREDIT_IMPOT, creditImpotPct: PCT } = await getConfig();
   const RESTE = 1 - CREDIT_IMPOT;
   return (
     <>
@@ -16,12 +16,11 @@ export default async function Simulation() {
         titre="Simulateur de budget"
         sousTitre={`Estimez en quelques secondes ce que vous paierez vraiment, grâce au crédit d'impôt de ${PCT} %.`}
         pastilles={[
-          `💶 Forfait 1h : ${eur(PRIX_HEURE)} (soit ${eur(PRIX_HEURE * RESTE)} net)`,
-          `⚡ Forfait 2h : ${eur(PRIX_PACK_2H)} (soit ${eur(PRIX_PACK_2H * RESTE)} net)`,
+          ...FORMULES.slice(0, 3).map((f) => `💶 ${f.nom} : ${eur(f.prix)} (soit ${eur(f.prix * RESTE)} net)`),
           '🚲 Déplacement : 0 €',
         ]}
       />
-      <Simulator prixHeure={PRIX_HEURE} prixPack2h={PRIX_PACK_2H} creditImpot={CREDIT_IMPOT} pct={PCT} />
+      <Simulator formules={FORMULES} tarifHoraire={REF} creditImpot={CREDIT_IMPOT} pct={PCT} />
       <div className="callout-box" style={{ marginTop: 28 }}>
         <p>
           <Icon name="euro" size={20} className="inline" /> <strong>Comment fonctionne le crédit d&apos;impôt de {PCT} % ?</strong><br />

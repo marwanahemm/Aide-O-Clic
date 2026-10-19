@@ -2,30 +2,29 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Icon from './Icon';
-import { calculerBudget, eur, nombre } from '../lib/pricing';
+import { calculerBudget, eur, nombre, heuresTxt } from '../lib/pricing';
 
 const RAPIDES = [1, 2, 3, 4, 6, 8];
 const borne = (h) => Math.min(10, Math.max(1, h));
 const fmtHeures = (h) => String(h).replace('.', ',');
 
-export default function Simulator({ prixHeure, prixPack2h, creditImpot, pct }) {
+export default function Simulator({ formules, tarifHoraire, creditImpot, pct }) {
   const [heures, setHeures] = useState(2);
-  const [mode, setMode] = useState('hourly');
-  const { brut, net } = calculerBudget(heures, mode, { prixHeure, prixPack2h, creditImpot });
+  const [choix, setChoix] = useState(0);
+  const formule = formules[Math.min(choix, formules.length - 1)];
+  const { brut, net } = calculerBudget(heures, formule, tarifHoraire, creditImpot);
 
   return (
     <div className="sim">
       <div className="panel">
         <h2 className="panel-title"><span className="n">1</span> Choisissez votre formule</h2>
         <div className="choice-grid" role="radiogroup" aria-label="Formule">
-          <button type="button" role="radio" aria-checked={mode === 'hourly'} className="choice" onClick={() => setMode('hourly')}>
-            <strong>Tarif horaire</strong>
-            <span>{nombre(prixHeure)} € / heure</span>
-          </button>
-          <button type="button" role="radio" aria-checked={mode === 'pack2h'} className="choice" onClick={() => setMode('pack2h')}>
-            <strong>Pack 2 heures</strong>
-            <span>{nombre(prixPack2h)} € les 2 heures</span>
-          </button>
+          {formules.map((f, i) => (
+            <button key={f.nom} type="button" role="radio" aria-checked={choix === i} className="choice" onClick={() => setChoix(i)}>
+              <strong>{f.nom}</strong>
+              <span>{nombre(f.prix)} € pour {heuresTxt(f.heures)} h</span>
+            </button>
+          ))}
         </div>
 
         <h2 className="panel-title" style={{ marginTop: 30 }}><span className="n">2</span> Combien d&apos;heures ?</h2>

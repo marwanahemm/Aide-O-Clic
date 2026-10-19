@@ -29,3 +29,4 @@ export const DATE_MAJ_LEGAL = '1er octobre 2026';
 // Source unique : utilisées par la page /mentions-legales ET par la purge automatique (/api/cron/purge)
 export const RETENTION_RDV_MOIS = 12;     // après la date du rendez-vous
 export const RETENTION_CONTACT_MOIS = 6;  // après la réception du message
+export const RETENTION_CLIENT_MOIS = 36;  // fiches du carnet de clients : après la dernière mise à jour
