@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Icon from '../components/Icon';
-import HeroArt from '../components/HeroArt';
+import QuickBooking from '../components/QuickBooking';
 import Reveal from '../components/Reveal';
 import CountUp from '../components/CountUp';
 import Catalogue from '../components/Catalogue';
@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic'; // les tarifs, communes et coordonnées 
 export default async function Accueil() {
   const {
     formules: FORMULES, tarifHoraire: REF, faq: FAQ, catalogue: CATALOGUE, creditImpot: CREDIT_IMPOT, creditImpotPct: PCT,
-    communes: COMMUNES, telephone: TELEPHONE, telephoneHref: TEL_HREF, email: EMAIL, annulationHeures: HEURES,
+    communes: COMMUNES, creneaux: CRENEAUX, telephone: TELEPHONE, telephoneHref: TEL_HREF, email: EMAIL, annulationHeures: HEURES,
   } = await getConfig();
   // Valeurs utilisables dans les textes de la FAQ modifiés depuis le back-office : {pct}, {communes}, {telephone}…
   const VARS = {
@@ -26,17 +26,15 @@ export default async function Accueil() {
 
   return (
     <>
-      {/* ===== Héros ===== */}
-      <section className="hero" aria-labelledby="titre-accueil">
-        <span className="hero-orb o1" aria-hidden="true" />
-        <span className="hero-orb o2" aria-hidden="true" />
+      {/* ===== Bandeau d'accueil : texte à gauche, réservation rapide à droite ===== */}
+      <section className="hero2" aria-labelledby="titre-accueil">
         <div>
-          <p className="hero-eyebrow"><Icon name="sparkle" size={18} /> {NOM_SITE} · Services à la personne · Bassin d&apos;Agen</p>
+          <p className="hero2-eyebrow"><Icon name="sparkle" size={18} /> {NOM_SITE} · Services à la personne · Bassin d&apos;Agen</p>
           <h1 id="titre-accueil">Votre assistant <em>administratif et informatique</em>, chez vous.</h1>
-          <p className="hero-lead">Démarches en ligne, ordinateur, tablette, smartphone… Je me déplace à votre domicile et je prends le temps de tout vous expliquer, sans jargon.</p>
+          <p className="hero2-lead">Démarches en ligne, ordinateur, tablette, smartphone… Je me déplace à votre domicile et je prends le temps de tout vous expliquer, sans jargon.</p>
           <div className="hero-actions">
             <Link href="/rendez-vous" className="btn btn-cta btn-lg"><Icon name="calendar" size={22} /> Prendre rendez-vous</Link>
-            <a href={TEL_HREF} className="btn btn-outline-light btn-lg"><Icon name="phone" size={22} /> {TELEPHONE}</a>
+            <a href={TEL_HREF} className="btn btn-ghost btn-lg"><Icon name="phone" size={22} /> {TELEPHONE}</a>
           </div>
           <ul className="trust-list">
             <li><Icon name="check" size={20} /> Crédit d&apos;impôt de {PCT} %</li>
@@ -44,7 +42,7 @@ export default async function Accueil() {
             <li><Icon name="check" size={20} /> Patience et pas de jargon</li>
           </ul>
         </div>
-        <div className="hero-art"><HeroArt pct={PCT} /></div>
+        <QuickBooking creneaux={CRENEAUX} />
       </section>
 
       {/* ===== Chiffres clés ===== */}

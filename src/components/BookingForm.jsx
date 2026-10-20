@@ -7,11 +7,11 @@ const JOURS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const dateLongue = (isoDate) => new Date(`${isoDate}T12:00:00`).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
 
-export default function BookingForm({ creneaux, communes, prestations, prestationInitiale = '' }) {
+export default function BookingForm({ creneaux, communes, prestations, prestationInitiale = '', dateInitiale = '', creneauInitial = '' }) {
   const [mois, setMois] = useState(null); // { y, m } — défini après affichage pour éviter un décalage serveur/navigateur
   const [demain, setDemain] = useState(null);
   const [jour, setJour] = useState('');
-  const [creneau, setCreneau] = useState('');
+  const [creneau, setCreneau] = useState(() => (creneaux.includes(creneauInitial) ? creneauInitial : ''));
   const [pris, setPris] = useState([]);
   const [prestation, setPrestation] = useState(() => prestations.find((p) => p.value === prestationInitiale)?.value || prestations[0]?.value || '');
   const [commune, setCommune] = useState(communes[0] || '');
@@ -24,7 +24,17 @@ export default function BookingForm({ creneaux, communes, prestations, prestatio
     const t = new Date();
     const d = new Date(t.getFullYear(), t.getMonth(), t.getDate() + 1);
     setDemain(d);
-    setMois({ y: d.getFullYear(), m: d.getMonth() }); // mois de « demain » : évite un calendrier tout grisé le dernier jour du mois
+    let m = { y: d.getFullYear(), m: d.getMonth() }; // mois de « demain » : évite un calendrier tout grisé le dernier jour du mois
+    // Jour (et créneau) choisis dans la carte de l'accueil : acceptés seulement s'ils sont valides
+    const [a, mo, j] = /^\d{4}-\d{2}-\d{2}$/.test(dateInitiale) ? dateInitiale.split('-').map(Number) : [0, 0, 0];
+    const choisi = a ? new Date(a, mo - 1, j) : null;
+    if (choisi && iso(choisi) === dateInitiale && choisi >= d && choisi.getDay() !== 0 && choisi.getDay() !== 6) {
+      setJour(dateInitiale);
+      m = { y: a, m: mo - 1 };
+    } else {
+      setCreneau('');
+    }
+    setMois(m);
   }, []);
 
   useEffect(() => {

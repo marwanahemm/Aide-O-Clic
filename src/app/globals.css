@@ -623,3 +623,48 @@ html[data-mode="senior"] .pricing-card:hover, html[data-mode="senior"] .feature:
 .cat-tile p::first-letter { text-transform: uppercase; }
 
 @media (max-width: 480px) { .hero-actions .btn { width: 100%; padding: 0 14px; font-size: 0.98rem; } }
+
+/* ==========================================================================
+   Bandeau d'accueil « hero2 » : fond clair de la charte + carte de réservation rapide
+   ========================================================================== */
+.hero2 { position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 40px; align-items: center; padding: 52px 48px; border-radius: 28px; border: 1px solid #d3e4f4; background: linear-gradient(135deg, #eef6fd 0%, #ffffff 65%); box-shadow: var(--shadow-1); animation: monte 0.55s ease both; }
+.hero2::after { content: ""; position: absolute; right: -90px; top: -90px; width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle, rgba(0, 119, 204, 0.16), transparent 70%); pointer-events: none; }
+.hero2 > * { position: relative; z-index: 1; }
+.hero2-eyebrow { display: inline-flex; align-items: center; gap: 8px; background: #fff; border: 1px solid #d3e4f4; color: var(--cyan-text); padding: 8px 16px; border-radius: 999px; font-size: 0.82rem; font-weight: 800; letter-spacing: 0.02em; margin-bottom: 20px; }
+.hero2 h1 { color: var(--navy-bg); font-size: 2.55rem; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 16px; }
+.hero2 h1 em { font-style: normal; color: var(--cyan-accent); }
+.hero2-lead { color: var(--text-muted); font-size: 1.15rem; max-width: 34rem; margin-bottom: 26px; }
+.hero2 .hero-actions { margin-bottom: 24px; }
+.hero2 .trust-list li { color: var(--text-dark); }
+.hero2 .trust-list .icon { color: var(--green); }
+
+.resa { background: #fff; border: 1px solid var(--border-color); border-radius: 24px; padding: 26px; box-shadow: var(--shadow-2); }
+.resa h2 { font-size: 1.25rem; margin-bottom: 4px; }
+.resa-sub { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 16px; }
+.resa-jours { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+.jour { font-family: inherit; font-size: 1.15rem; font-weight: 800; line-height: 1.2; color: var(--text-dark); text-align: center; padding: 10px 0; min-height: 60px; background: var(--card-bg); border: 2px solid transparent; border-radius: 12px; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+.jour small { display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
+.jour:hover { border-color: var(--cyan-accent); background: var(--cyan-soft); }
+.jour.sel, .jour.sel:hover { background: var(--navy-bg); border-color: var(--navy-bg); color: #fff; }
+.jour.sel small { color: #9fc9ee; }
+.resa-date { font-size: 0.9rem; font-weight: 800; color: var(--text-dark); margin-bottom: 10px; }
+.resa-date .cap::first-letter { text-transform: uppercase; }
+.resa .time-slots { margin: 0 0 18px; }
+.resa-attente { height: 150px; border-radius: 14px; background: linear-gradient(90deg, #f1f5f9, #e8eef5, #f1f5f9); background-size: 200% 100%; animation: chargement 1.4s linear infinite; margin-bottom: 18px; }
+@keyframes chargement { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+.resa-go { margin-top: 4px; }
+
+@media (max-width: 900px) {
+  .hero2 { grid-template-columns: minmax(0, 1fr); padding: 30px 20px; gap: 26px; }
+  .hero2 h1 { font-size: 2rem; }
+  .resa { padding: 20px 16px; }
+}
+@media (max-width: 480px) { .hero2 h1 { font-size: 1.8rem; } .jour { font-size: 1.05rem; } }
+html[data-mode="senior"] .hero2 { grid-template-columns: minmax(0, 1fr); }
+html[data-mode="senior"] .hero2::after { display: none; }
+html[data-mode="senior"] .hero2-lead, html[data-mode="senior"] .resa-sub { color: #1e293b; }
+html[data-mode="senior"] .resa { border: 2px solid #475569; }
+html[data-mode="senior"] .jour { min-height: 72px; border: 2px solid #475569; background: #fff; color: #000; }
+html[data-mode="senior"] .jour small { color: #1e293b; }
+html[data-mode="senior"] .jour.sel { background: #000; border-color: #000; color: #fff; }
+html[data-mode="senior"] .jour.sel small { color: #fff; }

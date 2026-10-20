@@ -15,7 +15,7 @@ export default function Nav() {
   const pathname = usePathname();
   return (
     <nav className="main-nav" aria-label="Menu principal">
-      {LIENS.filter(([href]) => href !== '/rendez-vous').map(([href, label]) => (
+      {LIENS.map(([href, label]) => (
         <Link key={href} href={href} className={'nav-link' + (pathname === href ? ' active' : '')} aria-current={pathname === href ? 'page' : undefined}>
           {label}
         </Link>
