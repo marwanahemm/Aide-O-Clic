@@ -1,0 +1,9 @@
+{
+  "name": "facturation",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Rendu PDF (facture, attestation fiscale) avec pdf-lib, appelé par le paquet Python facturation",
+  "dependencies": {
+    "pdf-lib": "1.17.1"
+  }
+}

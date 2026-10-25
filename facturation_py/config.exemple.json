@@ -1,0 +1,15 @@
+{
+  "nom_site": "Aide O'Clic",
+  "sous_titre": "Assistance à domicile",
+  "editeur": {
+    "nom": "Marwan AHEMANNE",
+    "statut": "Entrepreneur individuel",
+    "adresse": "ADRESSE COMPLÈTE, CODE POSTAL VILLE",
+    "siret": "XXX XXX XXX XXXXX",
+    "sap": "XXXXXXXXX",
+    "tva": "TVA non applicable, article 293 B du CGI"
+  },
+  "telephone": "07 81 05 14 72",
+  "email": "marwan.ahemmane@gmail.com",
+  "credit_impot_pct": 50
+}
