@@ -4,7 +4,7 @@ export function expliquerErreurBase(e) {
   const code = e?.code || '';
   const msg = String(e?.message || '');
   if (code === 'PGRST205' || code === '42P01' || /could not find the table|does not exist/i.test(msg)) {
-    return "Une table est introuvable dans Supabase : exécutez supabase/schema.sql, puis back-office.sql, conformite.sql et gestion.sql (SQL Editor).";
+    return "Une table est introuvable dans Supabase : exécutez supabase/schema.sql, puis back-office.sql, conformite.sql, gestion.sql et factures.sql (SQL Editor).";
   }
   if (code === '42501' || /row-level security|permission denied/i.test(msg)) {
     return "Supabase refuse l'écriture : la clé enregistrée dans SUPABASE_SERVICE_ROLE_KEY n'a pas les droits. Utilisez la clé secrète (sb_secret_…) ou la clé service_role, pas la clé publique (anon / publishable).";

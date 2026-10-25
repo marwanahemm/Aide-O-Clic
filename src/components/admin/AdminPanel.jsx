@@ -1,13 +1,15 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { eur, construirePrestations } from '../../lib/pricing';
+import { eur, nombre, construirePrestations } from '../../lib/pricing';
 import RdvForm from './RdvForm';
 import MessageForm from './MessageForm';
 import ClientsPanel from './ClientsPanel';
 import FormulesEditor from './FormulesEditor';
 import FaqEditor from './FaqEditor';
 import CatalogueEditor from './CatalogueEditor';
+import FacturesPanel from './FacturesPanel';
+import { aujourdhuiParis } from '../../lib/facturesAdmin';
 
 async function appel(url, methode, corps) {
   const res = await fetch(url, { method: methode, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corps) });
@@ -72,7 +74,7 @@ function ListeEditable({ titre, valeurs, onChange, max, exemple }) {
   );
 }
 
-export default function AdminPanel({ config, rendezVous, messages, clients = [], erreurClients = '', defauts, retentionClientMois = 36, erreurDonnees, demo }) {
+export default function AdminPanel({ config, rendezVous, messages, clients = [], erreurClients = '', factures = [], erreurFactures = '', defauts, retentionClientMois = 36, erreurDonnees, demo }) {
   const router = useRouter();
   const [onglet, setOnglet] = useState('rdv');
   const [cfg, setCfg] = useState(config);
@@ -81,6 +83,7 @@ export default function AdminPanel({ config, rendezVous, messages, clients = [],
   const [occupe, setOccupe] = useState(false);
   const [formRdv, setFormRdv] = useState(null); // null = fermé · {} = création · rendez-vous = modification
   const [formMsg, setFormMsg] = useState(null);
+  const [formFacture, setFormFacture] = useState(null); // null = fermé · {} = nouvelle facture · objet = préremplie
   const [rechercheRdv, setRechercheRdv] = useState('');
   const [rechercheMsg, setRechercheMsg] = useState('');
   const prestations = construirePrestations(config);
@@ -131,6 +134,34 @@ export default function AdminPanel({ config, rendezVous, messages, clients = [],
     setEtat({ type: '', texte: '' });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+  // ----- Factures -----
+  const creerFacture = (payload, fermer) => agir(
+    () => appel('/api/admin/factures', 'POST', payload),
+    (r) => { fermer(); return { type: 'ok', texte: `Facture ${r.numero} créée.` }; },
+  );
+  const actionFacture = (id, action, extra, fermer) => agir(
+    () => appel('/api/admin/factures', 'PATCH', { id, action, ...extra }),
+    () => { if (fermer) fermer(); return { type: 'ok', texte: action === 'payer' ? 'Règlement enregistré.' : action === 'annuler' ? 'Facture annulée.' : 'Facture rouverte.' }; },
+  );
+  const modifierFacture = (payload, fermer) => agir(
+    () => appel('/api/admin/factures', 'PUT', payload),
+    () => { fermer(); return { type: 'ok', texte: 'Coordonnées de la facture corrigées.' }; },
+  );
+  // « 🧾 Facturer » depuis un rendez-vous : client retrouvé dans le carnet, formule reconnue ou prestation facturée à l'heure
+  const facturerRdv = (r) => {
+    const norm = (v) => String(v || '').toLowerCase().replace(/\s+/g, ' ').trim();
+    const chiffres = (v) => String(v || '').replace(/\D/g, '');
+    const c = clients.find((x) => (r.email && x.email && norm(x.email) === norm(r.email)) || (chiffres(r.telephone) && chiffres(x.telephone) === chiffres(r.telephone)) || norm(x.nom) === norm(r.nom));
+    const fo = config.formules.find((x) => `${x.nom} (${nombre(x.prix)} €)` === r.prestation);
+    setFormFacture({
+      rdv_id: r.id, client_id: c?.id || '', client_nom: c?.nom || r.nom, client_adresse: c ? [c.adresse, c.commune].filter(Boolean).join(', ') : '',
+      date_prestation: r.date_rdv > aujourdhuiParis() ? aujourdhuiParis() : r.date_rdv, // une prestation future ne peut pas encore être facturée
+      lignes: [fo ? { designation: fo.nom, quantite: '1', prix_unitaire: String(fo.prix) } : { designation: `${r.prestation} (heures)`, quantite: '1', prix_unitaire: String(config.tarifHoraire) }],
+    });
+    setOnglet('factures');
+    setEtat({ type: '', texte: '' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
   const deconnecter = async () => { await fetch('/api/admin/logout', { method: 'POST' }); router.refresh(); };
 
   const nonLus = messages.filter((m) => !m.lu).length;
@@ -139,6 +170,7 @@ export default function AdminPanel({ config, rendezVous, messages, clients = [],
     ['rdv', `Rendez-vous${enAttente ? ` (${enAttente})` : ''}`],
     ['messages', `Messages${nonLus ? ` (${nonLus})` : ''}`],
     ['clients', `Clients${clients.length ? ` (${clients.length})` : ''}`],
+    ['factures', `Factures${factures.filter((f) => f.statut === 'emise').length ? ` (${factures.filter((f) => f.statut === 'emise').length})` : ''}`],
     ['tarifs', 'Formules & tarifs'],
     ['catalogue', 'Catalogue'],
     ['faq', 'FAQ'],
@@ -223,6 +255,7 @@ export default function AdminPanel({ config, rendezVous, messages, clients = [],
                   {r.statut === 'confirme' && r.email && <button type="button" className="slot-btn" disabled={occupe} onClick={() => changerStatut(r.id, 'confirme', true)}>✉️ Renvoyer l&apos;e-mail de confirmation</button>}
                   {r.statut !== 'annule' && <button type="button" className="slot-btn" disabled={occupe} onClick={() => changerStatut(r.id, 'annule')}>❌ Annuler (libère le créneau)</button>}
                   {r.statut !== 'en_attente' && <button type="button" className="slot-btn" disabled={occupe} onClick={() => changerStatut(r.id, 'en_attente')}>↩️ Remettre en attente</button>}
+                  {r.statut !== 'annule' && <button type="button" className="slot-btn" disabled={occupe} onClick={() => facturerRdv(r)}>🧾 Facturer</button>}
                   <button type="button" className="slot-btn" disabled={occupe} onClick={() => { setFormRdv(r); setEtat({ type: '', texte: '' }); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>✏️ Modifier</button>
                   <button type="button" className="slot-btn" disabled={occupe} onClick={() => supprimerRdv(r.id)}>🗑️ Supprimer</button>
                 </div>
@@ -260,6 +293,12 @@ export default function AdminPanel({ config, rendezVous, messages, clients = [],
             </div>
           ))}
         </>
+      )}
+
+      {onglet === 'factures' && (
+        <FacturesPanel factures={factures} erreur={erreurFactures} clients={clients} formules={config.formules} tarifHoraire={config.tarifHoraire}
+          site={{ editeur: config.editeur, creditImpotPct: Number(config.creditImpotPct), telephone: config.telephone, email: config.email, nomSite: "Aide O'Clic" }}
+          occupe={occupe} form={formFacture} setForm={setFormFacture} onCreate={creerFacture} onAction={actionFacture} onModifier={modifierFacture} />
       )}
 
       {onglet === 'clients' && (

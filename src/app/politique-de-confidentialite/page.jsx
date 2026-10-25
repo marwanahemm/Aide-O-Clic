@@ -34,6 +34,7 @@ export default async function Confidentialite() {
           <li><strong>Formulaire de contact</strong> : nom, téléphone ou e-mail, message. Finalité : vous répondre. Base légale : mesures précontractuelles à votre demande, ou intérêt légitime à répondre aux questions reçues.</li>
           <li><strong>Carnet de clients</strong> (tenu par l’éditeur, jamais visible sur le site) : nom, téléphone et/ou e-mail, adresse, commune et notes de suivi sur les interventions réalisées.
             Finalité : gérer la relation avec mes clients (rendez-vous, devis, factures, suivi). Base légale : exécution du contrat (article 6.1.b du RGPD) et intérêt légitime à assurer le suivi de mes interventions.</li>
+          <li><strong>Facturation</strong> (tenue par l’éditeur, jamais visible sur le site) : nom, adresse, prestations facturées et règlements. Finalité : établir les factures et attestations fiscales, tenir ma comptabilité. Base légale : obligation légale (comptabilité) et exécution du contrat (articles 6.1.c et 6.1.b du RGPD).</li>
         </ul>
         <p>Les champs obligatoires sont strictement ceux dont j’ai besoin pour vous répondre ou vous rappeler : sans eux, je ne peux pas traiter votre demande. Les autres champs sont facultatifs et signalés comme tels. Aucune décision automatisée, aucun profilage, aucune prospection commerciale.</p>
       </div>
@@ -49,9 +50,10 @@ export default async function Confidentialite() {
           <li><strong>Demandes de rendez-vous</strong> : {RETENTION_RDV_MOIS} mois après la date du rendez-vous, puis suppression automatique.</li>
           <li><strong>Messages de contact</strong> : {RETENTION_CONTACT_MOIS} mois après réception, puis suppression automatique.</li>
           <li><strong>Fiches du carnet de clients</strong> : {RETENTION_CLIENT_MOIS} mois après la dernière mise à jour de la fiche, puis suppression automatique.</li>
+          <li><strong>Factures et attestations</strong> : 10 ans à compter de leur établissement (obligation de conservation des documents comptables) ; elles ne sont pas supprimées automatiquement.</li>
           <li><strong>E-mails de notification</strong> reçus par l’éditeur : supprimés dans les mêmes délais.</li>
         </ul>
-        <p>Les devis, factures et documents comptables, établis en dehors de ce site, sont conservés selon les obligations légales (10 ans).</p>
+        <p>Les pièces comptables établies en dehors de ce site sont conservées selon les mêmes obligations légales (10 ans).</p>
       </div>
 
       <div className="card-item">

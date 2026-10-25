@@ -47,6 +47,7 @@ puis `npm run preview`.
   Avant d'ouvrir le site au public : exécuter `supabase/conformite.sql` (et `supabase/gestion.sql` pour le carnet de clients), compléter ces champs (SIRET, n° SAP, médiateur…)
   et relire les textes. Aucun bandeau de cookies n'est nécessaire tant que le site n'utilise aucun traceur soumis à consentement.
 - **Gestion depuis `/admin`** : formules et tarifs (ajout / modification / suppression, jusqu'à 6), FAQ de l'accueil, carnet de clients, rendez-vous et messages. Les formules et la FAQ sont stockées dans `parametres` (aucun SQL) ; le carnet de clients demande `supabase/gestion.sql`.
+- **Factures et attestations** (onglet « Factures » de `/admin`) : numérotation continue AAAA-NNN, suivi des règlements, PDF de facture et attestation fiscale annuelle générés dans le navigateur. Demande `supabase/factures.sql` et la dépendance `pdf-lib` (`npm install pdf-lib`).
 - Durées de conservation RGPD : `src/lib/site.js` (non modifiables depuis le back-office, car la purge automatique en dépend).
 - Sécurité : RLS activé sans policy → la base est inaccessible avec une clé publique ; seules les routes
   `/api/*` écrivent, côté serveur, avec la clé `service_role` (jamais préfixée `NEXT_PUBLIC_`).

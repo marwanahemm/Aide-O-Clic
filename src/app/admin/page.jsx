@@ -28,10 +28,11 @@ export default async function Admin() {
 
   const config = await getConfig();
   const db = getSupabase();
-  const [rdv, msg, cli] = await Promise.all([
+  const [rdv, msg, cli, fac] = await Promise.all([
     db.from('rendez_vous').select('*').order('date_rdv', { ascending: false }).order('creneau').limit(300),
     db.from('messages_contact').select('*').order('created_at', { ascending: false }).limit(300),
     db.from('clients').select('*').order('nom').limit(500),
+    db.from('factures').select('*').order('date_facture', { ascending: false }).order('numero', { ascending: false }).limit(1000),
   ]);
 
   return (
@@ -40,6 +41,8 @@ export default async function Admin() {
       rendezVous={rdv.data || []}
       messages={msg.data || []}
       clients={cli.data || []}
+      factures={fac.data || []}
+      erreurFactures={fac.error ? expliquerErreurBase(fac.error) : ''}
       erreurClients={cli.error ? expliquerErreurBase(cli.error) : ''}
       defauts={{ formules: FORMULES_DEFAUT, faq: FAQ_DEFAUT, catalogue: CATALOGUE_DEFAUT }}
       retentionClientMois={RETENTION_CLIENT_MOIS}
