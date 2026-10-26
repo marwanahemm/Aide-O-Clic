@@ -992,3 +992,35 @@ html[data-mode="senior"] .header-actions .btn-ghost-dark { display: none; }
 .admin-shell .card-item-header { color: var(--text-dark); }
 .admin-shell .slot-btn { min-height: 42px; font-size: 0.9rem; }
 .admin-shell .callout-box { border-radius: 0 20px 20px 0; }
+
+/* =====================================================================
+   PAGES INTERNES COMPACTES (rendez-vous, simulateur, contact)
+   Tailles réduites uniquement ici : calendrier en cases basses, titres et cartes plus serrés.
+   ===================================================================== */
+.ac-subpage { min-height: 0; padding-bottom: 72px; }
+.ac-subpage .page-hero { padding: 36px 0 24px; margin: 0 0 24px; }
+.ac-subpage .page-hero-eyebrow { font-size: 0.7rem; margin-bottom: 10px; }
+.ac-subpage .page-hero-title { font-size: clamp(1.55rem, 2.3vw, 2.05rem); margin-bottom: 10px; }
+.ac-subpage .page-hero-sub { font-size: 0.98rem; line-height: 1.55; }
+.ac-subpage .pill-list { margin-top: 16px; gap: 8px; }
+.ac-subpage .pill { font-size: 0.8rem; padding: 6px 12px; }
+.ac-subpage .stepper { margin-bottom: 18px; }
+.ac-subpage .stepper li { padding: 10px 12px; font-size: 0.9rem; }
+.ac-subpage .panel { padding: 18px; margin-bottom: 16px; border-radius: 16px; }
+.ac-subpage .panel-title { font-size: 1.02rem; margin-bottom: 12px; gap: 10px; }
+.ac-subpage .panel-title .n { width: 28px; height: 28px; font-size: 0.82rem; }
+.ac-subpage .cal-clair { padding: 12px; border-radius: 14px; }
+.ac-subpage .calendar-header { margin-bottom: 10px; }
+.ac-subpage .calendar-title { font-size: 0.98rem; }
+.ac-subpage .calendar-header .slot-btn { width: 36px; min-height: 36px; padding: 0; font-size: 1.1rem; }
+.ac-subpage .calendar-grid { gap: 4px; }
+.ac-subpage .cal-day { aspect-ratio: auto; height: 38px; font-size: 0.9rem; border-radius: 9px; }
+.ac-subpage .cal-day-head { font-size: 0.68rem; padding: 2px 0; }
+.ac-subpage .cal-empty { aspect-ratio: auto; height: 38px; }
+.ac-subpage .time-slots { gap: 8px; }
+.ac-subpage .slot-btn { min-height: 40px; padding: 0 14px; font-size: 0.9rem; }
+.ac-subpage .field-help { font-size: 0.85rem; }
+.ac-subpage .recap, .ac-subpage .contact-card, .ac-subpage .callout-box { padding: 16px 18px; }
+.ac-subpage .booking, .ac-subpage .sim, .ac-subpage .contact-grid { gap: 20px; }
+.ac-subpage .booking-side { gap: 12px; }
+.ac-subpage .callout-box p { font-size: 0.9rem; }
