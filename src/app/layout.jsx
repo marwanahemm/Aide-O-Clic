@@ -39,7 +39,7 @@ export default async function RootLayout({ children }) {
             </div>
           </div>
         )}
-        <SiteHeader horaires={horaires} />
+        <SiteHeader horaires={horaires} telephone={telephone} telephoneHref={telephoneHref} />
         <main id="contenu" className="container" tabIndex={-1}>
           {children}
         </main>
