@@ -20,7 +20,7 @@ export default function ModeSwitch() {
   return (
     <button type="button" role="switch" aria-checked={senior} className="mode-switch" onClick={toggle}>
       <Icon name="eye" size={20} />
-      <span className="mode-label">Mode accessibilité<small>Textes plus grands, contrastes renforcés</small></span>
+      <span className="mode-label">Mode accessibilité<small>Fond clair, textes plus grands, contrastes renforcés</small></span>
       <span className="track" aria-hidden="true" />
     </button>
   );

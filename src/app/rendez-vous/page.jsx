@@ -13,13 +13,13 @@ export default async function RendezVous({ searchParams }) {
   const dateInitiale = typeof sp?.date === 'string' ? sp.date : '';
   const creneauInitial = typeof sp?.creneau === 'string' ? sp.creneau : '';
   return (
-    <>
+    <div className="ac-subpage">
       <PageHead
         titre="Prendre rendez-vous"
         sousTitre="Choisissez un jour et un créneau : je viens chez vous, sur le Bassin d'Agen. C'est simple et sans engagement."
         pastilles={['📅 Calendrier en temps réel', '⚡ Intervention rapide', `💳 Crédit d'impôt ${cfg.creditImpotPct} %`]}
       />
       <BookingForm creneaux={cfg.creneaux} communes={cfg.communes} prestations={construirePrestations(cfg)} prestationInitiale={prestationInitiale} dateInitiale={dateInitiale} creneauInitial={creneauInitial} />
-    </>
+    </div>
   );
 }

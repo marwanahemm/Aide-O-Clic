@@ -36,7 +36,7 @@ export default function ClientsPanel({ clients, erreur, communes, retentionMois,
           <div key={c.id} className="card-item" style={{ padding: 16, marginBottom: 12 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
               <strong>{c.nom}</strong>
-              <span style={{ fontSize: 13, color: restant <= 6 ? '#92400e' : 'var(--text-muted)', fontWeight: restant <= 6 ? 800 : 600 }}>
+              <span style={{ fontSize: 13, color: restant <= 6 ? 'var(--amber-text)' : 'var(--text-muted)', fontWeight: restant <= 6 ? 800 : 600 }}>
                 {restant <= 6 ? `⏳ Suppression automatique dans ${Math.max(restant, 0)} mois` : `Dernière mise à jour : ${new Date(c.updated_at || c.created_at).toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' })}`}
               </span>
             </div>

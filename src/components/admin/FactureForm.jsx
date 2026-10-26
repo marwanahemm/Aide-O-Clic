@@ -63,7 +63,7 @@ export default function FactureForm({ initial, clients, formules, tarifHoraire, 
 
       <p className="form-label" style={{ marginBottom: 8 }}>Lignes de la facture</p>
       {lignes.map((l, i) => (
-        <div key={i} style={{ border: '1px solid var(--border-color)', borderRadius: 12, padding: 12, marginBottom: 10, background: '#fff' }}>
+        <div key={i} style={{ border: '1px solid var(--border-color)', borderRadius: 12, padding: 12, marginBottom: 10, background: 'var(--surface)' }}>
           <div className="form-group">
             <label className="form-label" htmlFor={`l-d-${i}`}>Désignation</label>
             <input id={`l-d-${i}`} className="form-input" value={l.designation} onChange={(e) => majLigne(i, 'designation', e.target.value)} maxLength={120} placeholder="Ex : Assistance informatique — installation d'une imprimante (heures)" required />

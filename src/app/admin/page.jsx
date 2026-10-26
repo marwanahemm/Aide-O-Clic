@@ -13,7 +13,7 @@ export const metadata = { title: 'Administration', robots: { index: false, follo
 export default async function Admin() {
   if (!adminConfigure() || !baseConfiguree()) {
     return (
-      <div className="card-item" style={{ padding: 24, marginTop: 20 }}>
+      <div className="ac-subpage"><div className="card-item" style={{ padding: 24, marginTop: 20 }}>
         <div className="card-item-header">🔧 Espace admin non configuré</div>
         <p>Pour activer l&apos;espace admin, définir dans Cloudflare (Settings → Variables and Secrets) :</p>
         <ul>
@@ -21,7 +21,7 @@ export default async function Admin() {
           <li><strong>SUPABASE_URL</strong> et <strong>SUPABASE_SERVICE_ROLE_KEY</strong> (secret)</li>
         </ul>
         <p>Puis exécuter <code>supabase/back-office.sql</code> dans Supabase (SQL Editor) et redéployer.</p>
-      </div>
+      </div></div>
     );
   }
   if (!(await estAdmin())) return <LoginForm />;

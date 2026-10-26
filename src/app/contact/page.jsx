@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 export default async function Contact() {
   const { communes: COMMUNES, telephone: TELEPHONE, telephoneHref: TELEPHONE_HREF, email: EMAIL, horaires: HORAIRES } = await getConfig();
   return (
-    <>
+    <div className="ac-subpage">
       <PageHead
         titre="Une question ? Parlons-en."
         sousTitre="Un renseignement avant de me faire venir chez vous ? Appelez-moi ou écrivez-moi : je réponds avec plaisir."
@@ -49,6 +49,6 @@ export default async function Contact() {
           <ContactForm />
         </div>
       </div>
-    </>
+    </div>
   );
 }

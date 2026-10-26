@@ -144,7 +144,7 @@ export default function BookingForm({ creneaux, communes, prestations, prestatio
         <div>
           <section className="panel" aria-labelledby="t-date">
             <h2 className="panel-title" id="t-date"><span className="n">1</span> Choisissez un jour</h2>
-            <div className="calendar-container">
+            <div className="cal-clair"><div className="calendar-container">
               <div className="calendar-header">
                 <button type="button" className="slot-btn" onClick={() => changerMois(-1)} disabled={!peutReculer} aria-label="Mois précédent">‹</button>
                 <div className="calendar-title" aria-live="polite">{titreMois}</div>
@@ -172,7 +172,7 @@ export default function BookingForm({ creneaux, communes, prestations, prestatio
                 })}
               </div>
               <p className="field-help" style={{ marginTop: 12 }}>Du lundi au vendredi. Les jours grisés ne sont pas disponibles.</p>
-            </div>
+            </div></div>
           </section>
 
           <section className="panel" aria-labelledby="t-creneau">

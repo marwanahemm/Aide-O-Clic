@@ -52,7 +52,7 @@ export default function CatalogueEditor({ catalogue, onChange, defauts }) {
           <p className="form-label" style={{ marginBottom: 8 }}>Prestations de cette catégorie</p>
           {c.items.length === 0 && <p className="field-help" style={{ marginBottom: 10 }}>Aucune prestation : la carte n&apos;affichera que son titre.</p>}
           {c.items.map((it, k) => (
-            <div key={k} style={{ border: '1px solid var(--border-color)', borderRadius: 12, padding: 12, marginBottom: 10, background: '#fff' }}>
+            <div key={k} style={{ border: '1px solid var(--border-color)', borderRadius: 12, padding: 12, marginBottom: 10, background: 'var(--surface)' }}>
               <div className="grid-2" style={{ marginBottom: 0 }}>
                 <div className="form-group">
                   <label className="form-label" htmlFor={`it-i-${i}-${k}`}>Icône</label>

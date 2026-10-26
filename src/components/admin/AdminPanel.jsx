@@ -39,9 +39,9 @@ const dateLongue = (iso) => new Date(iso + 'T12:00:00Z').toLocaleDateString('fr-
   weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC',
 });
 const STATUTS = {
-  en_attente: { texte: 'En attente', fond: '#fef3c7', couleur: '#92400e' },
-  confirme: { texte: 'Confirmé', fond: '#dcfce7', couleur: '#14532d' },
-  annule: { texte: 'Annulé', fond: '#e2e8f0', couleur: '#475569' },
+  en_attente: { texte: 'En attente', fond: 'var(--amber-bg)', couleur: 'var(--amber-text)' },
+  confirme: { texte: 'Confirmé', fond: 'var(--green-badge-bg)', couleur: 'var(--green-badge-text)' },
+  annule: { texte: 'Annulé', fond: 'var(--line)', couleur: 'var(--text-muted)' },
 };
 const LABELS_EDITEUR = {
   nom: 'Nom et prénom', statut: 'Statut juridique', siret: 'N° SIRET', sap: 'N° de déclaration Services à la Personne',
@@ -186,14 +186,17 @@ export default function AdminPanel({ config, rendezVous, messages, clients = [],
   const messagesAffiches = messages.filter((m) => correspond(rechercheMsg, m.nom, m.contact, m.message));
 
   return (
-    <div style={{ marginTop: 20 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
-        <h1 style={{ fontSize: 22 }}>🛠️ Administration — Aide O&apos;Clic</h1>
-        <div style={{ display: 'flex', gap: 8 }}>
+    <div className="ac-subpage admin-shell">
+      <header className="admin-top">
+        <div>
+          <p className="ac-eyebrow"><span className="ac-live" aria-hidden="true" /> Espace administration · Aide O&apos;Clic</p>
+          <h1>Tableau de bord</h1>
+        </div>
+        <div className="admin-actions">
           <a href="/" className="slot-btn" style={{ textDecoration: 'none' }}>Voir le site</a>
           <button type="button" className="slot-btn" onClick={deconnecter}>Se déconnecter</button>
         </div>
-      </div>
+      </header>
 
       {demo && (
         <div className="senior-help-bar" role="note"><div className="senior-help-bar-text">
@@ -202,7 +205,7 @@ export default function AdminPanel({ config, rendezVous, messages, clients = [],
       )}
       {erreurDonnees && <div className="senior-help-bar" role="alert"><div className="senior-help-bar-text">⚠️ {erreurDonnees}</div></div>}
 
-      <div className="time-slots" style={{ marginBottom: 16 }} role="tablist">
+      <div className="time-slots admin-tabs" role="tablist">
         {onglets.map(([id, label]) => (
           <button key={id} type="button" role="tab" aria-selected={onglet === id} className={'slot-btn' + (onglet === id ? ' selected' : '')}
             onClick={() => { setOnglet(id); setEtat({ type: '', texte: '' }); }}>{label}</button>

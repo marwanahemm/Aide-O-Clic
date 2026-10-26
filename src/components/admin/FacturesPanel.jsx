@@ -5,9 +5,9 @@ import { eur } from '../../lib/pricing';
 import { MODES_PAIEMENT, aujourdhuiParis } from '../../lib/facturesAdmin';
 
 const STATUTS = {
-  emise: { texte: 'À encaisser', fond: '#fef3c7', couleur: '#92400e' },
-  payee: { texte: 'Payée', fond: '#dcfce7', couleur: '#14532d' },
-  annulee: { texte: 'Annulée', fond: '#e2e8f0', couleur: '#475569' },
+  emise: { texte: 'À encaisser', fond: 'var(--amber-bg)', couleur: 'var(--amber-text)' },
+  payee: { texte: 'Payée', fond: 'var(--green-badge-bg)', couleur: 'var(--green-badge-text)' },
+  annulee: { texte: 'Annulée', fond: 'var(--line)', couleur: 'var(--text-muted)' },
 };
 const dateCourte = (iso) => new Date(`${iso}T12:00:00Z`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 const cle = (nom) => String(nom || '').trim().toLowerCase().replace(/\s+/g, ' ');
@@ -133,9 +133,9 @@ export default function FacturesPanel({ factures, erreur, clients, formules, tar
             </div>
             <p style={{ margin: '6px 0' }}>
               <strong>{eur(Number(f.total))}</strong> · émise le {dateCourte(f.date_facture)} · prestation du {dateCourte(f.date_prestation)}
-              {f.statut === 'payee' ? <> · <span style={{ color: '#14532d', fontWeight: 700 }}>réglée le {dateCourte(f.date_paiement)} ({String(f.mode_paiement).toLowerCase()})</span></> : null}
+              {f.statut === 'payee' ? <> · <span style={{ color: 'var(--green-badge-text)', fontWeight: 700 }}>réglée le {dateCourte(f.date_paiement)} ({String(f.mode_paiement).toLowerCase()})</span></> : null}
               <br />{f.lignes.map((l) => `${l.designation} (${String(l.quantite).replace('.', ',')} × ${eur(Number(l.prix_unitaire))})`).join(' — ')}
-              {f.client_adresse ? <><br /><small>{f.client_adresse}</small></> : <><br /><small style={{ color: '#92400e' }}>⚠️ Adresse du client manquante</small></>}
+              {f.client_adresse ? <><br /><small>{f.client_adresse}</small></> : <><br /><small style={{ color: 'var(--amber-text)' }}>⚠️ Adresse du client manquante</small></>}
             </p>
 
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -147,7 +147,7 @@ export default function FacturesPanel({ factures, erreur, clients, formules, tar
             </div>
 
             {payerId === f.id && (
-              <form style={{ marginTop: 12, padding: 12, background: '#fff', border: '1px solid var(--border-color)', borderRadius: 12 }}
+              <form style={{ marginTop: 12, padding: 12, background: 'var(--surface)', border: '1px solid var(--border-color)', borderRadius: 12 }}
                 onSubmit={(e) => { e.preventDefault(); onAction(f.id, 'payer', paiement, () => setPayerId(null)); }}>
                 <div className="grid-2" style={{ marginBottom: 0 }}>
                   <div className="form-group">
@@ -169,7 +169,7 @@ export default function FacturesPanel({ factures, erreur, clients, formules, tar
             )}
 
             {editId === f.id && (
-              <form style={{ marginTop: 12, padding: 12, background: '#fff', border: '1px solid var(--border-color)', borderRadius: 12 }}
+              <form style={{ marginTop: 12, padding: 12, background: 'var(--surface)', border: '1px solid var(--border-color)', borderRadius: 12 }}
                 onSubmit={(e) => { e.preventDefault(); onModifier({ id: f.id, ...coord }, () => setEditId(null)); }}>
                 <p className="field-help" style={{ marginBottom: 10 }}>Vous pouvez corriger le nom, l&apos;adresse et la note. Les lignes et le montant ne changent jamais.</p>
                 <div className="form-group"><label className="form-label" htmlFor={`e-n-${f.id}`}>Nom du client</label><input id={`e-n-${f.id}`} className="form-input" value={coord.client_nom} onChange={(e) => setCoord((c) => ({ ...c, client_nom: e.target.value }))} required minLength={2} maxLength={100} /></div>

@@ -11,7 +11,7 @@ export default async function Simulation() {
   const { formules: FORMULES, tarifHoraire: REF, creditImpot: CREDIT_IMPOT, creditImpotPct: PCT } = await getConfig();
   const RESTE = 1 - CREDIT_IMPOT;
   return (
-    <>
+    <div className="ac-subpage">
       <PageHead
         titre="Simulateur de budget"
         sousTitre={`Estimez en quelques secondes ce que vous paierez vraiment, grâce au crédit d'impôt de ${PCT} %.`}
@@ -27,6 +27,6 @@ export default async function Simulation() {
           Grâce au dispositif Avance Immédiate du Cesu / Urssaf, vous ne réglez que le montant net ({100 - PCT} % de la prestation). Si vous préférez le paiement classique, {PCT} % du montant dépensé vous sera déduit lors de votre déclaration d&apos;impôt annuelle.
         </p>
       </div>
-    </>
+    </div>
   );
 }
