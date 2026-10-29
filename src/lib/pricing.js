@@ -98,10 +98,19 @@ export function reductionFormule(f, ref) {
 
 // Choix proposés dans le formulaire de rendez-vous : une ligne par formule + une ligne par catégorie du catalogue
 export function construirePrestations({ formules, catalogue = [] }) {
-  return [
-    ...formules.map((f) => ({ value: `${f.nom} (${nombre(f.prix)} €)`, label: `${f.nom} (${nombre(f.prix)} €)` })),
-    ...catalogue.map((c) => ({ value: c.titre, label: c.titre })),
-  ];
+  const liste = formules.map((f) => ({ value: `${f.nom} (${nombre(f.prix)} €)`, label: `${f.nom} (${nombre(f.prix)} €)` }));
+  const vus = new Set(liste.map((p) => p.value.toLowerCase()));
+  for (const c of catalogue) {
+    if (!vus.has(c.titre.toLowerCase())) { vus.add(c.titre.toLowerCase()); liste.push({ value: c.titre, label: c.titre }); }
+    // Chaque prestation (ex. « Initiation ») est réservable précisément ; les titres vides ou en double sont ignorés
+    for (const it of c.items || []) {
+      const t = String(it.titre || '').trim();
+      if (!t || vus.has(t.toLowerCase())) continue;
+      vus.add(t.toLowerCase());
+      liste.push({ value: t, label: `${c.titre} — ${t}` });
+    }
+  }
+  return liste;
 }
 
 // Budget pour N heures avec une formule : forfaits complets, puis le reste à l'heure (sans jamais dépasser le prix d'un forfait).

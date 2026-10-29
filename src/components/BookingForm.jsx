@@ -129,9 +129,16 @@ export default function BookingForm({ creneaux, communes, prestations, prestatio
 
   const etape = !jour ? 1 : !creneau ? 2 : 3;
   const etapes = [['Date', 1], ['Créneau', 2], ['Coordonnées', 3]];
+  const choix = prestations.find((p) => p.value === prestation);
 
   return (
     <div>
+      {choix && (
+        <div className="resa-choix">
+          <span>Prestation choisie : <b>{choix.label}</b></span>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => document.getElementById('prestation')?.focus()}>Modifier</button>
+        </div>
+      )}
       <ol className="stepper" aria-label="Progression">
         {etapes.map(([t, n]) => (
           <li key={n} className={n < etape ? 'fait' : n === etape ? 'actif' : ''} aria-current={n === etape ? 'step' : undefined}>
@@ -212,7 +219,7 @@ export default function BookingForm({ creneaux, communes, prestations, prestatio
 
               <div className="grid-2" style={{ marginBottom: 0 }}>
                 <div className="form-group">
-                  <label className="form-label" htmlFor="prestation">Formule souhaitée</label>
+                  <label className="form-label" htmlFor="prestation">Prestation ou formule souhaitée</label>
                   <select id="prestation" name="prestation" className="form-select" value={prestation} onChange={(e) => setPrestation(e.target.value)}>
                     {prestations.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
                   </select>
@@ -261,7 +268,7 @@ export default function BookingForm({ creneaux, communes, prestations, prestatio
               <div><dt>Date</dt><dd className={'cap' + (jour ? '' : ' vide')}>{jour ? dateLongue(jour) : 'À choisir dans le calendrier'}</dd></div>
               <div><dt>Créneau</dt><dd className={creneau ? '' : 'vide'}>{creneau || 'À choisir'}</dd></div>
               <div><dt>Lieu</dt><dd>{commune}</dd></div>
-              <div><dt>Formule</dt><dd>{prestation}</dd></div>
+              <div><dt>Prestation</dt><dd>{prestation}</dd></div>
             </dl>
           </div>
           <div className="panel" style={{ marginBottom: 0 }}>

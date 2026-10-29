@@ -1,4 +1,6 @@
 import './globals.css';
+import './kw.css';
+import { Outfit } from 'next/font/google';
 import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
 import { MobileBar } from '../components/Nav';
@@ -17,15 +19,17 @@ export const metadata = {
   openGraph: { siteName: NOM_SITE, locale: 'fr_FR', type: 'website' },
 };
 
-export const viewport = { themeColor: '#1b2535', width: 'device-width', initialScale: 1 };
+const outfit = Outfit({ subsets: ['latin'], weight: ['300', '400', '600', '700'], variable: '--font-outfit', display: 'swap' });
+
+export const viewport = { themeColor: '#1c1f24', width: 'device-width', initialScale: 1 };
 
 // Applique le mode accessibilité AVANT l'affichage (évite un « flash » en mode normal)
-const initMode = `try{if(localStorage.getItem('sap-mode')==='senior')document.documentElement.setAttribute('data-mode','senior')}catch(e){}`;
+const initMode = `try{var d=document.documentElement;if(localStorage.getItem('sap-mode')==='senior')d.setAttribute('data-mode','senior');if(localStorage.getItem('sap-theme')==='light')d.setAttribute('data-theme','light')}catch(e){}`;
 
 export default async function RootLayout({ children }) {
   const { telephone, telephoneHref, email, horaires } = await getConfig();
   return (
-    <html lang="fr" suppressHydrationWarning>
+    <html lang="fr" className={outfit.variable} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: initMode }} />
       </head>

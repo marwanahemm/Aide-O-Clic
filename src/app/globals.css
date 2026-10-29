@@ -49,7 +49,7 @@
 }
 
 /* Mode clair : mode accessibilité (html[data-mode="senior"]) et calendrier de réservation (.cal-clair) */
-html[data-mode="senior"], .cal-clair {
+html[data-mode="senior"] {
   --navy-bg: #1b2535;
   --navy-2: #243247;
   --navy-3: #2f4260;

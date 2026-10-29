@@ -2,6 +2,8 @@ import Link from 'next/link';
 import Icon from '../components/Icon';
 import QuickBooking from '../components/QuickBooking';
 import Reveal from '../components/Reveal';
+import BrowserMock, { PageMock } from '../components/BrowserMock';
+import MockCarousel from '../components/MockCarousel';
 import CountUp from '../components/CountUp';
 import RichText, { remplacer } from '../components/RichText';
 import { eur, nombre, heuresTxt, reductionFormule } from '../lib/pricing';
@@ -25,6 +27,9 @@ export default async function Accueil() {
   const F0 = FORMULES[0];
   // Chaque prestation du catalogue devient une carte (les 2 domaines regroupés, comme dans le back-office)
   const PRESTATIONS = CATALOGUE.flatMap((c) => c.items.map((it) => ({ ...it, categorie: c.titre })));
+  // Communes sans doublon (insensible à la casse et aux accents) pour le défilement continu
+  const norm = (t) => String(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+  const VILLES = COMMUNES.filter((c, k, a) => a.findIndex((x) => norm(x) === norm(c)) === k);
   const ticks = (n) => String(n).padStart(2, '0');
 
   return (
@@ -37,7 +42,7 @@ export default async function Accueil() {
           <p className="ac-lead">Démarches administratives, ordinateur, tablette, smartphone… Je me déplace à votre domicile et je prends le temps de tout vous expliquer, sans jargon.</p>
           <div className="ac-actions">
             <Link href="/rendez-vous" className="btn btn-cta btn-lg"><Icon name="calendar" size={22} /> Prendre rendez-vous</Link>
-            <a href="#prestations" className="btn btn-ghost btn-lg">Voir mes prestations <Icon name="arrow" size={20} /></a>
+            <a href="#prestations" className="btn btn-cta btn-blue btn-lg">Voir mes prestations <Icon name="arrow" size={20} /></a>
           </div>
           <dl className="ac-metrics">
             <div><dt>Crédit d&apos;impôt</dt><dd>{PCT} %</dd></div>
@@ -55,15 +60,36 @@ export default async function Accueil() {
         </div>
       </section>
 
+      {/* ===== Aperçu : formule, maquette inclinée et promesse ===== */}
+      {F0 && (
+        <Reveal as="section" className="ac-section kw-showcase" aria-label="Aperçu de l'accompagnement">
+          <aside className="kw-plan">
+            <div className="kw-plan-top"><span>{F0.nom}</span><b>{eur(F0.prix)}</b></div>
+            <p>{F0.description || 'Une intervention à domicile, déplacement compris.'}</p>
+            <div className="kw-doc" aria-hidden="true"><i /><i /><i /><em /><span className="kw-tag kw-tag-d">FICHE MÉMO</span></div>
+            <a href="#tarifs" className="kw-underlink">Voir toutes les formules</a>
+          </aside>
+          <BrowserMock
+            label="Aperçu d'une page de réservation Aide O'Clic"
+            tags={[{ text: 'CRÉNEAU CHOISI EN LIGNE', pos: 'a' }, { text: 'PAS À PAS · SANS JARGON', pos: 'b' }]}
+          >
+            <PageMock titre="Vos démarches," accent="sans stress." texte="Un humain qui se déplace chez vous et explique chaque étape, à votre rythme." creneaux={CRENEAUX} pct={PCT} />
+          </BrowserMock>
+          <div className="kw-claim">
+            <h2>Un accompagnement humain, <em>chez vous.</em></h2>
+            <p>Déplacement inclus, crédit d&apos;impôt de <b>{PCT} %</b> et attestation fiscale annuelle. Vous gardez la main sur chaque geste.</p>
+          </div>
+        </Reveal>
+      )}
+
       {/* ===== Zone d'intervention : défilement des communes ===== */}
       <section className="ac-zone" aria-label="Communes desservies">
         <p>Je me déplace chez vous, sans frais, sur le Bassin d&apos;Agen</p>
         <div className="ac-marquee">
-          <ul>
-            {[...COMMUNES, ...COMMUNES].map((c, i) => (
-              <li key={i} aria-hidden={i >= COMMUNES.length ? 'true' : undefined}>{c}</li>
-            ))}
-          </ul>
+          <div className="ac-track">
+            <ul>{VILLES.map((c) => <li key={c}>{c}</li>)}</ul>
+            <ul aria-hidden="true">{VILLES.map((c) => <li key={c}>{c}</li>)}</ul>
+          </div>
         </div>
       </section>
 
@@ -82,12 +108,27 @@ export default async function Accueil() {
                 <span className="ac-card-ico"><Icon name={it.icone || 'check'} size={24} /></span>
                 <h3>{it.titre || it.categorie}</h3>
                 <p>{it.texte}</p>
-                <Link href={`/rendez-vous?prestation=${encodeURIComponent(it.categorie)}`} className="ac-link">
-                  Réserver ce domaine <Icon name="arrow" size={16} />
+                <Link href={`/rendez-vous?prestation=${encodeURIComponent(it.titre || it.categorie)}`} className="ac-link">
+                  Réserver cette prestation <Icon name="arrow" size={16} />
                 </Link>
               </li>
             ))}
           </ul>
+        </Reveal>
+      )}
+
+      {/* ===== Aperçu des prestations en maquettes ===== */}
+      {PRESTATIONS.length > 0 && (
+        <Reveal as="section" className="ac-section" aria-labelledby="t-apercu">
+          <header className="ac-head">
+            <span className="ac-kicker">Aperçu des prestations</span>
+            <h2 id="t-apercu">Un aperçu de ce que <em>je vous propose.</em></h2>
+            <p>Chaque prestation du catalogue en un coup d&apos;œil. Le même soin est apporté à chaque rendez-vous.</p>
+          </header>
+          <MockCarousel items={PRESTATIONS} creneaux={CRENEAUX} pct={PCT} />
+          <div className="ac-actions" style={{ marginTop: 36, marginBottom: 0, justifyContent: 'flex-end' }}>
+            <Link href="/rendez-vous" className="btn btn-cta btn-lg">Prendre rendez-vous <Icon name="arrow" size={20} /></Link>
+          </div>
         </Reveal>
       )}
 
@@ -246,7 +287,7 @@ export default async function Accueil() {
                     {reduction > 0 && <li>Réduction de {eur(reduction)} par rapport au tarif horaire</li>}
                   </ul>
                 </div>
-                <Link href="/rendez-vous" className={'btn ' + (f.badge ? 'btn-cta' : 'btn-primary')} aria-label={`Réserver cette formule : ${f.nom}, ${nombre(f.prix)} euros brut`}>
+                <Link href="/rendez-vous" className="btn btn-cta" aria-label={`Réserver cette formule : ${f.nom}, ${nombre(f.prix)} euros brut`}>
                   Réserver cette formule <Icon name="arrow" size={20} />
                 </Link>
               </div>
